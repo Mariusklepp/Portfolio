@@ -1,4 +1,9 @@
-function Navbar({ darkMode, setDarkMode }) {
+interface NavbarProps {
+  darkMode: boolean
+  setDarkMode: (value: boolean) => void
+}
+
+function Navbar({ darkMode, setDarkMode }: NavbarProps) {
   return (
     <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-10">
       <div className="flex items-center gap-1 bg-gray-900 border border-gray-700 rounded-full px-4 py-2">
