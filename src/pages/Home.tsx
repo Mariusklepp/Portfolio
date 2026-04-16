@@ -80,6 +80,20 @@ function Home() {
           <a href="#projects" className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition">See my work</a>
           <a href="#contact" className="border border-gray-300 dark:border-gray-600 hover:border-gray-500 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg transition">Contact me</a>
         </div>
+        <div className="flex gap-6 mt-6">
+            {[
+                { href: 'https://github.com/Mariusklepp', icon: 'devicon:github', label: 'GitHub' },
+                { href: 'https://linkedin.com/in/ditt-brukernavn', icon: 'devicon:linkedin', label: 'LinkedIn' },
+                { href: 'https://instagram.com/ditt-brukernavn', icon: 'skill-icons:instagram', label: 'Instagram' },
+                { href: 'mailto:din@epost.no', icon: 'material-symbols:mail-outline', label: 'Email' },
+                { href: '/cv.pdf', icon: 'material-symbols:download', label: 'CV' },
+            ].map(({ href, icon, label }) => (
+                <a key={label} href={href} target="_blank" rel="noreferrer" className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition">
+                <Icon icon={icon} width={24} height={24} />
+                <span className="text-xs">{label}</span>
+                </a>
+            ))}
+        </div>
       </section>
 
       {/* About */}
