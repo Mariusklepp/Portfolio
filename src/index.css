@@ -1,2 +1,108 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,700;1,9..144,800&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg:          #F0EBE0;
+  --bg-2:        #E2DCCD;
+  --surface:     #FAF6EC;
+  --border:      #B5AC97;
+  --accent:      #B04A18;
+  --accent-dim:  rgba(176, 74, 24, 0.14);
+  --warm:        #B04A18;
+  --green:       #6B7A2C;
+  --green-dim:   rgba(107, 122, 44, 0.16);
+  --amber:       #9C5C0E;
+  --amber-dim:   rgba(156, 92, 14, 0.16);
+  --text:        #1A1410;
+  --muted:       #5C5046;
+  --on-gradient: rgba(20, 16, 12, 0.40);
+}
+
+.dark {
+  --bg:          #161618;
+  --bg-2:        #1E1E20;
+  --surface:     #26262A;
+  --border:      #3A3A40;
+  --accent:      #E89968;
+  --accent-dim:  rgba(232, 153, 104, 0.16);
+  --warm:        #E89968;
+  --green:       #C5C77A;
+  --green-dim:   rgba(197, 199, 122, 0.16);
+  --amber:       #E5BD7E;
+  --amber-dim:   rgba(229, 189, 126, 0.16);
+  --text:        #EDEDEF;
+  --muted:       #9A9AA0;
+  --on-gradient: rgba(255, 255, 255, 0.22);
+}
+
+html {
+  background-color: var(--bg);
+}
+
+body {
+  font-family: 'Bricolage Grotesque', system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.font-display {
+  font-family: 'Fraunces', Georgia, serif;
+  font-style: italic;
+}
+
+.font-mono-label {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-hero > * {
+  opacity: 0;
+  animation: fade-up 0.6s ease forwards;
+}
+.animate-hero > *:nth-child(1) { animation-delay: 0.05s; }
+.animate-hero > *:nth-child(2) { animation-delay: 0.15s; }
+.animate-hero > *:nth-child(3) { animation-delay: 0.25s; }
+.animate-hero > *:nth-child(4) { animation-delay: 0.35s; }
+.animate-hero > *:nth-child(5) { animation-delay: 0.45s; }
+
+/* Accessibility: respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-hero > * {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+}
+
+/* Visible focus states for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Remove outline only when not using keyboard */
+:focus:not(:focus-visible) {
+  outline: none;
+}

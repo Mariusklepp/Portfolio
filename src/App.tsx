@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Home from './pages/Home'
+import AboutPage from './pages/AboutPage'
+import ProjectsPage from './pages/ProjectsPage'
 import ProjectPage from './pages/ProjectPage'
+import ContactPage from './pages/ContactPage'
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -21,11 +24,14 @@ function App() {
   }, [darkMode])
 
   return (
-    <div className="bg-white dark:bg-gray-950">
+    <div style={{ minHeight: '100vh' }}>
       <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/projects/:id" element={<ProjectPage />} />
+        <Route path="/contact" element={<ContactPage />} />
       </Routes>
     </div>
   )
