@@ -74,7 +74,8 @@ interface FlipItem {
 const flipItems: FlipItem[] = [
   { label: 'Studying at NTNU',  sub: 'Software Development, Trondheim', icon: 'lucide:graduation-cap', color: 'var(--accent)', bg: 'var(--accent-dim)' },
   { label: 'Building Millions', sub: 'Java + JavaFX stock simulator',   icon: 'lucide:trending-up',    color: 'var(--green)',  bg: 'var(--green-dim)' },
-  { label: 'Learning React',    sub: 'Hooks, state, real-world UI',     icon: 'devicon:react',         color: 'var(--amber)',  bg: 'var(--amber-dim)' },
+  { label: 'Building Deep Core',sub: 'Mobile drilling game',            icon: 'lucide:gamepad-2',      color: 'var(--warm)',   bg: 'var(--accent-dim)' },
+  { label: 'Learning Blender',  sub: '3D assets for Deep Core',         icon: 'logos:blender',         color: 'var(--amber)',  bg: 'var(--amber-dim)' },
   { label: 'Open to Freelance', sub: 'Available for collaboration',     icon: 'lucide:briefcase',      color: 'var(--warm)',   bg: 'var(--accent-dim)' },
 ]
 
