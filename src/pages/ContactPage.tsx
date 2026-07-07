@@ -27,15 +27,6 @@ function ContactForm() {
     fontFamily: 'inherit',
   }
 
-  const labelStyle = {
-    display: 'block',
-    fontSize: '12px',
-    color: 'var(--muted)',
-    marginBottom: '6px',
-    fontFamily: "'JetBrains Mono', monospace",
-    letterSpacing: '0.04em',
-  }
-
   if (sent) {
     return (
       <p style={{ color: 'var(--green)', fontSize: '14px', fontFamily: "'JetBrains Mono', monospace" }}>
@@ -45,35 +36,37 @@ function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
-      <div>
-        <label htmlFor="name" style={labelStyle}>name</label>
-        <input
-          id="name"
-          type="text"
-          required
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="Your name"
-          style={inputStyle}
-          onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-          onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
-        />
-      </div>
-      <div>
-        <label htmlFor="message" style={labelStyle}>message</label>
-        <textarea
-          id="message"
-          required
-          rows={5}
-          value={form.message}
-          onChange={(e) => setForm({ ...form, message: e.target.value })}
-          placeholder="What's on your mind?"
-          style={{ ...inputStyle, resize: 'none' }}
-          onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
-          onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
-        />
-      </div>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px', textAlign: 'left', height: '100%' }}>
+      <p
+        className="font-mono-label"
+        style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}
+      >
+        Send a message
+      </p>
+      <input
+        id="name"
+        type="text"
+        required
+        aria-label="Your name"
+        value={form.name}
+        onChange={(e) => setForm({ ...form, name: e.target.value })}
+        placeholder="Your name"
+        style={inputStyle}
+        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
+        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+      />
+      <textarea
+        id="message"
+        required
+        rows={5}
+        aria-label="Your message"
+        value={form.message}
+        onChange={(e) => setForm({ ...form, message: e.target.value })}
+        placeholder="What's on your mind?"
+        style={{ ...inputStyle, resize: 'none', flex: 1 }}
+        onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--accent)')}
+        onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--border)')}
+      />
       <button
         type="submit"
         className="cursor-pointer"
@@ -100,8 +93,8 @@ function ContactForm() {
 function ContactPage() {
   const channels = [
     { icon: 'lucide:mail',     label: 'Email',     value: 'marius.s.klepp@gmail.com', href: 'mailto:marius.s.klepp@gmail.com' },
-    { icon: 'devicon:github',  label: 'GitHub',    value: 'Mariusklepp',              href: 'https://github.com/Mariusklepp' },
-    { icon: 'devicon:linkedin', label: 'LinkedIn', value: 'Marius Klepp',             href: 'https://www.linkedin.com/in/marius-klepp-28494437b/' },
+    { icon: 'mdi:github',      label: 'GitHub',    value: 'Mariusklepp',              href: 'https://github.com/Mariusklepp' },
+    { icon: 'mdi:linkedin',     label: 'LinkedIn', value: 'Marius Klepp',             href: 'https://www.linkedin.com/in/marius-klepp-28494437b/' },
   ]
 
   return (
@@ -123,10 +116,10 @@ function ContactPage() {
 
           {/* Channels */}
           <Reveal delay={180}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', height: '100%' }}>
               <p
                 className="font-mono-label"
-                style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px' }}
+                style={{ fontSize: '11px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}
               >
                 Or reach me directly
               </p>
@@ -185,7 +178,7 @@ function ContactPage() {
                   color: 'var(--muted)',
                   textDecoration: 'none',
                   fontSize: '13px',
-                  marginTop: '8px',
+                  marginTop: 'auto',
                   transition: 'color 0.2s, border-color 0.2s',
                 }}
                 onMouseEnter={(e) => {

@@ -1,12 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Icon } from '@iconify/react'
 
-interface NavbarProps {
-  darkMode: boolean
-  setDarkMode: (value: boolean) => void
-}
-
-function Navbar({ darkMode, setDarkMode }: Readonly<NavbarProps>) {
+/**
+ * Minimal floating nav pill — name + links, nothing else. The dark/light toggle
+ * was removed (the site is dark-only now), and the items are given more room to
+ * breathe to read as a deliberate brand mark rather than a utility bar.
+ */
+function Navbar() {
   const { pathname } = useLocation()
 
   const links = [
@@ -22,13 +21,15 @@ function Navbar({ darkMode, setDarkMode }: Readonly<NavbarProps>) {
   }
 
   return (
-    <nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50">
+    <nav className="fixed top-5 left-1/2 -translate-x-1/2 z-50">
       <div
-        className="flex items-center gap-0.5 rounded-full px-2 py-1.5 text-sm"
+        className="flex items-center gap-2 rounded-full px-3 py-1.5"
         style={{
-          background: 'var(--surface)',
+          background: 'rgba(20, 20, 22, 0.72)',
           border: '1px solid var(--border)',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.35)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
           fontFamily: "'JetBrains Mono', monospace",
         }}
       >
@@ -38,25 +39,23 @@ function Navbar({ darkMode, setDarkMode }: Readonly<NavbarProps>) {
             <Link
               key={label}
               to={to}
-              className="px-3 py-1 rounded-full transition-all duration-200 text-xs"
+              className="px-4 py-1.5 rounded-full transition-all duration-200 text-xs cursor-pointer"
               style={
                 active
-                  ? { background: 'var(--accent-dim)', color: 'var(--accent)' }
-                  : { color: 'var(--muted)' }
+                  ? { background: 'var(--accent-dim)', color: 'var(--accent)', letterSpacing: '0.04em' }
+                  : { color: 'var(--muted)', letterSpacing: '0.04em' }
               }
+              onMouseEnter={(e) => {
+                if (!active) e.currentTarget.style.color = 'var(--text)'
+              }}
+              onMouseLeave={(e) => {
+                if (!active) e.currentTarget.style.color = 'var(--muted)'
+              }}
             >
               {label}
             </Link>
           )
         })}
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="ml-1 px-2.5 py-1 rounded-full transition-all duration-200 hover:scale-110 active:scale-95 cursor-pointer"
-          style={{ color: 'var(--muted)', background: 'var(--bg-2)' }}
-          aria-label="Toggle dark mode"
-        >
-          <Icon icon={darkMode ? 'lucide:sun' : 'lucide:moon'} width={14} height={14} />
-        </button>
       </div>
     </nav>
   )

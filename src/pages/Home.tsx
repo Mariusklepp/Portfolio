@@ -1,202 +1,181 @@
-import { Icon } from '@iconify/react'
-import { Link } from 'react-router-dom'
 import { projects } from '../data/projects'
-import { typewriterTexts, socialLinks, currentlyWorking } from '../data/home'
-import { useTypewriter } from '../hooks/useTypewriter'
-import { Reveal, Label, SectionHeading } from '../components/shared'
+import { currentlyWorking } from '../data/home'
+import { TravelingBackdrop, SlideIn, Parallax } from '../components/motion'
+import Hero from '../components/Hero'
+import ChapterRail from '../components/ChapterRail'
+import HorizontalGallery from '../components/HorizontalGallery'
 import Button from '../components/Button'
 import WorkingOnCard from '../components/WorkingOnCard'
-import ProjectCard from '../components/ProjectCard'
+import Pursuits from '../components/Pursuits'
 
-function HeroSection() {
-  const subtitle = useTypewriter(typewriterTexts)
+// "Things I've built" features finished work; the in-progress builds (Jarvis,
+// Deep Core) live in the Currently section, so they're filtered out here. Two
+// cards keep the gallery's end frame clean (no half-cut card); the rest live
+// behind "See all projects".
+const featuredProjects = projects.filter((p) => p.id !== 'jarvis' && p.id !== 'deep-core').slice(0, 2)
 
+/** Eyebrow + big condensed all-caps heading. The heading slides in from the
+ *  left; an optional action slides in from the right. */
+function SectionHeading({
+  index,
+  eyebrow,
+  title,
+  action,
+}: Readonly<{ index: string; eyebrow: string; title: string; action?: React.ReactNode }>) {
   return (
-    <section
-      className="animate-hero"
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        padding: '0 24px',
-      }}
-    >
-      <span
-        className="font-mono-label"
-        style={{ fontSize: '12px', color: 'var(--muted)', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '8px' }}
-      >
-        Portfolio · 2025
-      </span>
-
-      <h1
-        className="font-display"
-        style={{
-          fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
-          fontWeight: 800,
-          color: 'var(--text)',
-          lineHeight: 1.05,
-          letterSpacing: '-0.03em',
-          marginBottom: '20px',
-        }}
-      >
-        Hi, I'm Marius
-      </h1>
-
-      <p
-        className="font-mono-label"
-        style={{
-          fontSize: 'clamp(13px, 2vw, 16px)',
-          color: 'var(--accent)',
-          height: '24px',
-          marginBottom: '16px',
-        }}
-      >
-        {subtitle}<span style={{ animation: 'pulse 1s infinite', opacity: 0.7 }}>_</span>
-      </p>
-
-      <p style={{ color: 'var(--muted)', maxWidth: '400px', lineHeight: 1.7, marginBottom: '36px', fontSize: '15px' }}>
-        I build clean and useful software. Passionate about web development and Java.
-      </p>
-
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '36px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <Button to="/projects" variant="primary">See my work</Button>
-        <Button to="/contact" variant="secondary">Contact me</Button>
-      </div>
-
-      <SocialLinks />
-    </section>
-  )
-}
-
-function SocialLinks() {
-  return (
-    <div style={{ display: 'flex', gap: '24px' }}>
-      {socialLinks.map(({ href, icon, label, download }) => (
-        <a
-          key={label}
-          href={href}
-          target="_blank"
-          rel="noreferrer"
-          download={download}
-          className="cursor-pointer"
+    <div style={{ position: 'relative', marginBottom: '56px' }}>
+      {/* big ghost chapter number, drifting behind the heading (parallax depth) */}
+      <Parallax amount={50}>
+        <span
+          aria-hidden
+          className="font-condensed"
           style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px',
-            color: 'var(--muted)',
-            textDecoration: 'none',
-            transition: 'color 0.2s',
-            fontSize: '11px',
+            position: 'absolute',
+            top: '-0.62em',
+            left: '-0.04em',
+            fontSize: 'clamp(7rem, 20vw, 18rem)',
+            fontWeight: 800,
+            lineHeight: 0.8,
+            color: 'rgba(245, 243, 240, 0.035)',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted)')}
         >
-          <Icon icon={icon} width={22} height={22} />
-          <span className="font-mono-label">{label}</span>
-        </a>
-      ))}
+          {index}
+        </span>
+      </Parallax>
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '20px',
+        }}
+      >
+        <SlideIn from="left">
+          <span
+            className="font-mono-label"
+            style={{
+              display: 'block',
+              fontSize: '12px',
+              color: 'var(--accent)',
+              letterSpacing: '0.22em',
+              textTransform: 'uppercase',
+              marginBottom: '16px',
+            }}
+          >
+            {index} — {eyebrow}
+          </span>
+          <h2
+            className="font-condensed"
+            style={{
+              fontSize: 'clamp(2.8rem, 8vw, 6rem)',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              lineHeight: 0.88,
+              letterSpacing: '0.01em',
+              color: 'var(--text)',
+            }}
+          >
+            {title}
+          </h2>
+        </SlideIn>
+        {action && <SlideIn from="right">{action}</SlideIn>}
+      </div>
     </div>
   )
 }
 
-function CtaSection() {
+function Section({ children, chapter }: Readonly<{ children: React.ReactNode; chapter?: number }>) {
   return (
-    <section style={{ padding: '128px 24px', textAlign: 'center' }}>
-      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <Reveal>
-          <p
-            className="font-mono-label"
-            style={{ fontSize: '12px', color: 'var(--accent)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '20px' }}
-          >
-            · let's connect
-          </p>
-          <h2
-            className="font-display"
-            style={{
-              fontSize: 'clamp(2rem, 5vw, 3.2rem)',
-              fontWeight: 800,
-              color: 'var(--text)',
-              lineHeight: 1.1,
-              letterSpacing: '-0.03em',
-              marginBottom: '20px',
-            }}
-          >
-            Want to build something together?
-          </h2>
-          <p style={{ color: 'var(--muted)', fontSize: '16px', lineHeight: 1.7, marginBottom: '36px' }}>
-            I'm open to freelance projects, collaborations, and good conversations about code.
-          </p>
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button to="/contact" variant="primary">Get in touch</Button>
-            <Button to="/projects" variant="secondary">See my work</Button>
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  )
-}
-
-function CurrentlyWorkingSection() {
-  return (
-    <section style={{ background: 'var(--bg-2)', padding: '96px 24px' }}>
-      <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
-        <Reveal>
-          <Label n="01" text="currently working on" />
-          <SectionHeading>Currently Working On</SectionHeading>
-        </Reveal>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px' }}>
-          {currentlyWorking.map((item, i) => (
-            <Reveal key={item.title} delay={i * 90}>
-              <WorkingOnCard item={item} />
-            </Reveal>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function FeaturedProjectsSection() {
-  return (
-    <section style={{ maxWidth: '1024px', margin: '0 auto', padding: '96px 24px' }}>
-      <Reveal>
-        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', marginBottom: '48px', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <Label n="02" text="featured" />
-            <SectionHeading>Featured Projects</SectionHeading>
-          </div>
-          <Link
-            to="/projects"
-            className="font-mono-label cursor-pointer"
-            style={{ fontSize: '12px', color: 'var(--accent)', textDecoration: 'none' }}
-          >
-            View all →
-          </Link>
-        </div>
-      </Reveal>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-        {projects.slice(0, 2).map((project, i) => (
-          <Reveal key={project.id} delay={i * 110}>
-            <ProjectCard project={project} />
-          </Reveal>
-        ))}
-      </div>
+    <section
+      data-chapter={chapter}
+      style={{ maxWidth: '1180px', margin: '0 auto', padding: 'clamp(72px, 12vh, 150px) clamp(20px, 5vw, 48px)' }}
+    >
+      {children}
     </section>
   )
 }
 
 function Home() {
   return (
-    <>
-      <HeroSection />
-      <CurrentlyWorkingSection />
-      <FeaturedProjectsSection />
-      <CtaSection />
-    </>
+    <div style={{ position: 'relative' }}>
+      <TravelingBackdrop />
+      <ChapterRail />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div data-chapter="0">
+          <Hero />
+        </div>
+
+        {/* Currently */}
+        <Section chapter={1}>
+          <SectionHeading index="01" eyebrow="Right now" title="Currently building" />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '28px' }}>
+            {currentlyWorking.map((item, i) => (
+              <SlideIn key={item.title} from={i % 2 === 0 ? 'left' : 'right'} style={{ height: '100%' }}>
+                <WorkingOnCard item={item} />
+              </SlideIn>
+            ))}
+          </div>
+        </Section>
+
+        {/* Selected work — horizontal scroll gallery */}
+        <HorizontalGallery projects={featuredProjects} />
+
+        {/* Get to know me — the short version of about, and the landing's second
+            pinned moment (Pursuits.tsx owns the whole section incl. heading and
+            data-chapter): scroll steps through the pursuit word stack — always
+            starting on the first word — and the "More about me" line ignites as
+            the exit beat. Copy rule: only claims that are actually true about
+            Marius. */}
+        <Pursuits />
+
+        {/* Contact */}
+        <Section chapter={4}>
+          <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
+            <SlideIn from="up">
+              <span
+                className="font-mono-label"
+                style={{ fontSize: '12px', color: 'var(--accent)', letterSpacing: '0.22em', textTransform: 'uppercase' }}
+              >
+                Let's connect
+              </span>
+            </SlideIn>
+            <SlideIn from="up" delay={0.08}>
+              <h2
+                className="font-condensed"
+                style={{
+                  fontSize: 'clamp(2.8rem, 9vw, 6.5rem)',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  lineHeight: 0.9,
+                  color: 'var(--text)',
+                  margin: '18px 0 40px',
+                }}
+              >
+                Build something
+                <br />
+                together?
+              </h2>
+            </SlideIn>
+            <SlideIn from="up" delay={0.16}>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Button to="/contact" variant="primary">
+                  Get in touch
+                </Button>
+                <Button to="/projects" variant="secondary">
+                  See my work
+                </Button>
+              </div>
+            </SlideIn>
+          </div>
+        </Section>
+      </div>
+    </div>
   )
 }
 

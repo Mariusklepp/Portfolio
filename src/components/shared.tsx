@@ -36,10 +36,10 @@ export function Reveal({ children, delay = 0 }: { children: React.ReactNode; del
 
 export function Label({ n, text }: { n: string; text: string }) {
   return (
-    <div style={{ marginBottom: '12px' }}>
+    <div style={{ marginBottom: '14px' }}>
       <span
         className="font-mono-label"
-        style={{ fontSize: '12px', color: 'var(--accent)', letterSpacing: '0.05em' }}
+        style={{ fontSize: '12px', color: 'var(--accent)', letterSpacing: '0.2em', textTransform: 'uppercase' }}
       >
         {n} · {text}
       </span>
@@ -50,13 +50,15 @@ export function Label({ n, text }: { n: string; text: string }) {
 export function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
     <h2
+      className="font-condensed"
       style={{
-        fontFamily: "'Bricolage Grotesque', sans-serif",
         fontWeight: 800,
-        fontSize: 'clamp(1.6rem, 3vw, 2.1rem)',
+        fontSize: 'clamp(1.9rem, 4vw, 3rem)',
+        textTransform: 'uppercase',
         color: 'var(--text)',
-        marginBottom: '3rem',
-        letterSpacing: '-0.02em',
+        marginBottom: '2.4rem',
+        letterSpacing: '0.01em',
+        lineHeight: 0.95,
       }}
     >
       {children}
@@ -67,13 +69,15 @@ export function SectionHeading({ children }: { children: React.ReactNode }) {
 export function PageHeading({ children }: { children: React.ReactNode }) {
   return (
     <h1
+      className="font-condensed"
       style={{
-        fontFamily: "'Bricolage Grotesque', sans-serif",
         fontWeight: 800,
-        fontSize: 'clamp(2rem, 5vw, 3rem)',
+        fontSize: 'clamp(2.6rem, 7vw, 5rem)',
+        textTransform: 'uppercase',
         color: 'var(--text)',
-        letterSpacing: '-0.02em',
-        marginBottom: '16px',
+        letterSpacing: '0.01em',
+        lineHeight: 0.92,
+        marginBottom: '20px',
       }}
     >
       {children}

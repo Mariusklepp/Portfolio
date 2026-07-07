@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import SmoothScroll from './components/SmoothScroll'
 import Home from './pages/Home'
 import AboutPage from './pages/AboutPage'
 import ProjectsPage from './pages/ProjectsPage'
@@ -8,24 +9,17 @@ import ProjectPage from './pages/ProjectPage'
 import ContactPage from './pages/ContactPage'
 
 function App() {
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode')
-    if (saved !== null) return saved === 'true'
-    return globalThis.matchMedia('(prefers-color-scheme: dark)').matches
-  })
-
+  // Dark-first and now dark-only: the cinematic, editorial experience lives in
+  // the dark, and the nav's mode toggle has been removed, so we simply lock the
+  // dark theme on at the root.
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-    localStorage.setItem('darkMode', String(darkMode))
-  }, [darkMode])
+    document.documentElement.classList.add('dark')
+  }, [])
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
+      <SmoothScroll />
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutPage />} />

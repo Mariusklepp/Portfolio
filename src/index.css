@@ -1,5 +1,6 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,700;1,9..144,800&family=Bricolage+Grotesque:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+/* Fonts are loaded via <link> in index.html (faster, and avoids the
+   @import-ordering warning once Tailwind expands its own import). */
 
 @variant dark (&:where(.dark, .dark *));
 
@@ -21,13 +22,14 @@
 }
 
 .dark {
-  --bg:          #161618;
-  --bg-2:        #1E1E20;
-  --surface:     #26262A;
-  --border:      #3A3A40;
-  --accent:      #E89968;
-  --accent-dim:  rgba(232, 153, 104, 0.16);
-  --warm:        #E89968;
+  --bg:          #08080A;
+  --bg-2:        #1A1A1D;
+  --surface:     #222226;
+  --border:      #36363C;
+  --accent:      #E50914;
+  --accent-dim:  rgba(229, 9, 20, 0.16);
+  --glow:        rgba(255, 45, 55, 0.5);
+  --warm:        #E50914;
   --green:       #C5C77A;
   --green-dim:   rgba(197, 199, 122, 0.16);
   --amber:       #E5BD7E;
@@ -61,6 +63,13 @@ body {
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Live status dot — used by "In Development" / "ongoing" / availability badges
+   across the site. Referenced inline as `animation: pulse 2s infinite`. */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
 }
 
 .animate-hero > * {
@@ -105,4 +114,270 @@ a:focus-visible {
 /* Remove outline only when not using keyboard */
 :focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Hero social icons + hover tooltip. Driven by real CSS :hover (and
+   :focus-visible) rather than JS state, so a tooltip can never get "stuck"
+   open if a mouseleave is dropped during a re-render. */
+.hero-social {
+  position: relative;
+  display: flex;
+  color: rgba(245, 243, 240, 0.55);
+  transition: color 0.2s ease, transform 0.2s ease;
+  filter: drop-shadow(0 1px 10px rgba(0, 0, 0, 0.8));
+}
+.hero-social:hover,
+.hero-social:focus-visible {
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+.hero-social:active {
+  transform: translateY(0) scale(0.9);
+}
+.hero-social-tip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%) translateY(5px);
+  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  padding: 6px 11px;
+  border-radius: 7px;
+  color: #f5f3f0;
+  background: rgba(19, 19, 21, 0.96);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+  pointer-events: none;
+}
+.hero-social:hover .hero-social-tip,
+.hero-social:focus-visible .hero-social-tip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Condensed grotesque for big, all-caps editorial type. */
+.font-condensed {
+  font-family: 'Barlow Condensed', 'Bebas Neue', 'Bricolage Grotesque', sans-serif;
+}
+
+/* Fine film grain over the fixed backdrop — texture, not noise. */
+.bg-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+}
+
+/* Hero — editorial, full-viewport. Absolutely-positioned layers: the vertical
+   name and the big stacked type are anchored left and vertically centred via
+   flex (so framer-motion is free to own the transform), the photo bleeds off
+   the right, and the actions sit along the bottom. On narrow screens the name
+   hides, the type centres, and the photo sinks behind it. */
+.hero-name-vert {
+  position: absolute;
+  left: clamp(10px, 2.5vw, 34px);
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  z-index: 2;
+  pointer-events: none;
+}
+.hero-type {
+  position: absolute;
+  left: clamp(54px, 8vw, 150px);
+  top: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+  max-width: min(62vw, 760px);
+}
+.hero-photo {
+  position: absolute;
+  bottom: 0;
+  right: clamp(12px, 4vw, 72px);
+  height: 92vh;
+  z-index: 1;
+  /* the figure itself isn't interactive, so it never steals hover/clicks from
+     the social icons layered on top of it */
+  pointer-events: none;
+}
+.hero-socials-photo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(22px, 5vh, 50px);
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  z-index: 4;
+  pointer-events: auto;
+}
+.hero-socials-bar { display: none; }
+.hero-bottom {
+  position: absolute;
+  left: clamp(54px, 8vw, 150px);
+  right: clamp(20px, 6vw, 90px);
+  bottom: clamp(20px, 5vh, 48px);
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  /* the empty span of the bar shouldn't block the icons centred on the photo */
+  pointer-events: none;
+}
+.hero-bottom > * {
+  pointer-events: auto;
+}
+
+@media (max-width: 1024px) {
+  .hero-name-vert { display: none; }
+  .hero-type {
+    left: 0;
+    right: 0;
+    align-items: center;
+    text-align: center;
+    padding: 0 20px;
+    max-width: none;
+  }
+  .hero-photo {
+    right: 50%;
+    transform: translateX(50%);
+    height: 64vh;
+  }
+  .hero-photo-img { opacity: 0.4; }
+  .hero-socials-photo { display: none; }
+  .hero-socials-bar { display: flex; gap: 24px; }
+  .hero-bottom {
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    padding: 0 20px;
+  }
+}
+
+/* Chapter rail — fixed wayfinding down the right edge. A faint line threads the
+   dots; the active stage glows and reveals its label, passed stages stay dim-lit.
+   Hidden on narrow screens (handled in the component under reduced motion). */
+.chapter-rail {
+  position: fixed;
+  right: clamp(16px, 2.2vw, 34px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  pointer-events: none;
+}
+/* The threading line runs from the CENTRE of the first dot to the centre of
+   the last — never past the outermost dots. Rows get a fixed height so those
+   centres sit at a known offset (half a row) from the rail's edges. */
+.chapter-rail::before {
+  content: '';
+  position: absolute;
+  right: 3px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--border);
+  z-index: -1;
+}
+.chapter-rail-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  height: 16px;
+  pointer-events: auto;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font: inherit;
+}
+.chapter-rail-row:hover .chapter-rail-label {
+  opacity: 1;
+  color: var(--text);
+  transform: translateX(0);
+}
+.chapter-rail-row:hover .chapter-rail-dot {
+  border-color: var(--accent);
+  transform: scale(1.25);
+}
+.chapter-rail-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.35s ease, color 0.35s ease, transform 0.35s ease;
+}
+.chapter-rail-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #08080a;
+  flex-shrink: 0;
+  transition: background 0.35s ease, border-color 0.35s ease, transform 0.35s ease, box-shadow 0.35s ease;
+}
+.chapter-rail-row[data-passed='true'] .chapter-rail-dot {
+  /* opaque mix (NOT the translucent --accent-dim) — the threading line behind
+     must never show through the dot */
+  background: color-mix(in srgb, var(--accent) 18%, var(--bg));
+  border-color: var(--accent);
+}
+.chapter-rail-row[data-active='true'] .chapter-rail-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.4);
+  box-shadow: 0 0 12px var(--accent);
+}
+/* The active stage is marked by the glowing dot alone; the label only appears on
+   hover, so it never collides with content that reaches near the right edge. */
+.chapter-rail-row[data-active='true'] .chapter-rail-label {
+  color: var(--accent);
+  transform: translateX(0);
+}
+
+@media (max-width: 1024px) {
+  .chapter-rail { display: none; }
+}
+
+/* "Get to know me" word wall — the pursuits as one flowing line of big
+   condensed words (see src/components/Pursuits.tsx). The live word takes the
+   accent while the rest stay dim; hover brightens a candidate. */
+.pursuit-word {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+  opacity: 0.32;
+  transition: color 0.35s ease, opacity 0.35s ease;
+}
+.pursuit-word:hover { opacity: 0.75; }
+.pursuit-word[data-active='true'] {
+  color: var(--accent);
+  opacity: 1;
 }

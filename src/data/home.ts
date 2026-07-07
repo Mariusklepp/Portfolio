@@ -1,26 +1,81 @@
 export const typewriterTexts = [
   'Software Development Student',
-  'Java Developer',
-  'React Developer',
+  'Building JARVIS in Python',
+  'Designing Deep Core',
+  'Learning Blender',
   'Open to Freelance',
 ]
+
+/**
+ * Hero portrait — the focal point of the landing (landonorris-style isolated
+ * portrait: face owns the frame, name shrinks to a corner logo).
+ *
+ * Use a FRONT-FACING, evenly-lit photo. For the cleanest result, remove the
+ * background (e.g. remove.bg, or Photos "lift subject") and save a transparent
+ * PNG, then keep `heroPortraitIsolated = true`. If instead you point this at a
+ * raw photo that has a plain background, set `heroPortraitIsolated = false` and
+ * the hero feathers/vignettes the background away so the figure emerges from
+ * the dark.
+ *
+ * If this is `null`, missing, or fails to load, the hero falls back to the
+ * kinetic wordmark on its own — so it's always safe to experiment.
+ */
+export const heroPortrait: string | null = '/images/portrait.png'
+/** true = `heroPortrait` is already background-removed (transparent PNG);
+ *  false = raw photo, let the hero knock the plain background out via a mask. */
+export const heroPortraitIsolated = true
 
 export interface SocialLink {
   href: string
   icon: string
   label: string
+  /** Descriptive text shown in the hover tooltip; falls back to `label`. */
+  hover?: string
   download?: boolean
 }
 
 export const socialLinks: SocialLink[] = [
-  { href: 'https://github.com/Mariusklepp',                         icon: 'devicon:github',     label: 'GitHub' },
-  { href: 'https://www.linkedin.com/in/marius-klepp-28494437b/',    icon: 'devicon:linkedin',   label: 'LinkedIn' },
-  { href: 'https://instagram.com/mariusklepp',                      icon: 'skill-icons:instagram', label: 'Instagram' },
-  { href: 'mailto:marius.s.klepp@gmail.com',                        icon: 'lucide:mail',        label: 'Email' },
-  { href: '/cv.pdf',                                                icon: 'lucide:download',    label: 'CV', download: true },
+  { href: 'https://github.com/Mariusklepp',                         icon: 'mdi:github',         label: 'GitHub',    hover: 'View GitHub' },
+  { href: 'https://www.linkedin.com/in/marius-klepp-28494437b/',    icon: 'mdi:linkedin',       label: 'LinkedIn',  hover: 'Connect on LinkedIn' },
+  { href: 'https://instagram.com/mariusklepp',                      icon: 'mdi:instagram',      label: 'Instagram', hover: 'Follow on Instagram' },
+  { href: 'mailto:marius.s.klepp@gmail.com',                        icon: 'lucide:mail',        label: 'Email',     hover: 'Email me' },
+  { href: '/cv.pdf',                                                icon: 'lucide:download',    label: 'CV',        hover: 'Download CV', download: true },
+]
+
+/**
+ * "Get to know me" — what the free time actually goes to. Rendered by
+ * `src/components/Pursuits.tsx` as a stack of big condensed words: the pursuit
+ * itself is the hero, `line` is one plain human sentence (only claims that are
+ * true about Marius), and `fact` is a small mono detail under it.
+ * Person stuff only — no code stats; those belong in Work / project pages.
+ */
+export interface Pursuit {
+  name: string
+  line: string
+  fact?: string
+}
+
+export const pursuits: Pursuit[] = [
+  {
+    name: 'Training',
+    line: "Mostly gym and running. I've run the Trondheim Marathon, and next up is the Copenhagen Marathon in May 2027. I'm also thinking about an Ironman.",
+    fact: 'Trondheim done · Copenhagen May 2027',
+  },
+  {
+    name: 'Slalom & snowboard',
+    line: 'As many days on the mountain as I can get.',
+    fact: 'Every winter',
+  },
+  {
+    name: 'Golf',
+    line: "The newest one. I recently started playing and I'm still learning the game.",
+    fact: 'Just started',
+  },
 ]
 
 export interface WorkingOnItem {
+  /** Matches the project id in projects.ts, so the ticker can link to its page. */
+  id: string
   title: string
   description: string
   tags: string[]
@@ -33,33 +88,25 @@ export interface WorkingOnItem {
 
 export const currentlyWorking: WorkingOnItem[] = [
   {
-    title: 'Millions',
-    description: 'A stock market simulator built in Java with JavaFX. Implements design patterns like Observer, Factory, and dependency injection.',
-    tags: ['Java', 'JavaFX'],
+    id: 'jarvis',
+    title: 'JARVIS',
+    description: 'A voice-activated AI desktop assistant inspired by Iron Man. Wakes my PC, controls music and lights, and holds a natural conversation — all from a single wake word.',
+    tags: ['Python', 'Claude', 'ElevenLabs'],
     status: 'In Development',
     statusColor: 'var(--warm)',
     statusBg: 'var(--accent-dim)',
-    icon: 'lucide:trending-up',
+    icon: 'lucide:mic',
     iconColor: 'var(--warm)',
   },
   {
+    id: 'deep-core',
     title: 'Deep Core',
     description: 'A mobile game where you drill toward the earth\'s core, build an underground base, and compete with other players. Atmospheric, social, endless.',
     tags: ['Mobile', 'Game Dev', 'Strategy'],
-    status: 'In Development',
+    status: 'In Design',
     statusColor: 'var(--warm)',
     statusBg: 'var(--accent-dim)',
     icon: 'lucide:gamepad-2',
     iconColor: 'var(--warm)',
-  },
-  {
-    title: 'This Portfolio',
-    description: 'Building and refining my personal portfolio website with React and Tailwind CSS.',
-    tags: ['React', 'TypeScript', 'Tailwind'],
-    status: 'Active',
-    statusColor: 'var(--accent)',
-    statusBg: 'var(--accent-dim)',
-    icon: 'lucide:globe',
-    iconColor: 'var(--accent)',
   },
 ]
