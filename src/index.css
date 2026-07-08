@@ -375,6 +375,17 @@ a:focus-visible {
   color: var(--accent);
   opacity: 1;
 }
+/* Currently-building cards are links to their project pages — the hover lift
+   + accent border is the "this is clickable" affordance. */
+.working-card {
+  transition: border-color 0.25s ease, transform 0.25s ease;
+}
+.working-card:hover,
+.working-card:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+}
+
 /* The CTA under the stack: a typographic line that gains a traced outline at
    the end of the scrub (SVG in the component); label answers hover/active. */
 .pursuit-cta .pursuit-cta-label {

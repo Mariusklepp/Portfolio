@@ -4,10 +4,12 @@ import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScro
 import { pursuits } from '../data/home'
 
 /** Extra scroll distance the pin lasts — the "dwell" that drives the words. */
-const TRACK_PX = 1500
-/** Progress band that steps through the words; before = first word, after = CTA. */
+const TRACK_PX = 1800
+/** Progress band that steps through the words; before = first word, after = CTA.
+    WORDS_END sits well before the zoom-out (0.9) so the finished button gets a
+    beat of dwell where it's the only thing lit. */
 const WORDS_START = 0.12
-const WORDS_END = 0.82
+const WORDS_END = 0.7
 
 const eyebrowStyle: React.CSSProperties = {
   display: 'block',
@@ -49,7 +51,9 @@ const wordStyle: React.CSSProperties = {
 export default function Pursuits() {
   const sectionRef = useRef<HTMLElement>(null)
   const reduce = useReducedMotion()
-  const [active, setActive] = useState(0)
+  // active = null during the CTA beat: every word goes quiet (no red, details
+  // folded) so the finished button is the only thing lit.
+  const [active, setActive] = useState<number | null>(0)
   const [ctaHot, setCtaHot] = useState(false)
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] })
@@ -58,13 +62,11 @@ export default function Pursuits() {
   const opacity = useTransform(scrollYProgress, [0, 0.08, 0.92, 1], [0.5, 1, 1, 0.5])
 
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
+    const hot = p >= WORDS_END
     const span = (WORDS_END - WORDS_START) / pursuits.length
-    const idx = Math.min(Math.max(Math.floor((p - WORDS_START) / span), 0), pursuits.length - 1)
+    const idx = hot ? null : Math.min(Math.max(Math.floor((p - WORDS_START) / span), 0), pursuits.length - 1)
     setActive((prev) => (prev === idx ? prev : idx))
-    setCtaHot((prev) => {
-      const next = p >= WORDS_END
-      return prev === next ? prev : next
-    })
+    setCtaHot((prev) => (prev === hot ? prev : hot))
   })
 
   const heading = (

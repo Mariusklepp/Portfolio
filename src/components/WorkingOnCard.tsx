@@ -1,10 +1,14 @@
 import { Icon } from '@iconify/react'
+import { Link } from 'react-router-dom'
 import { type WorkingOnItem } from '../data/home'
 import Tag from './Tag'
 
+/** The whole card links to its project page (item.id matches projects.ts). */
 function WorkingOnCard({ item }: { item: WorkingOnItem }) {
   return (
-    <div
+    <Link
+      to={`/projects/${item.id}`}
+      className="working-card cursor-pointer"
       style={{
         background: 'var(--surface)',
         border: '1px solid var(--border)',
@@ -14,6 +18,7 @@ function WorkingOnCard({ item }: { item: WorkingOnItem }) {
         flexDirection: 'column',
         gap: '16px',
         height: '100%',
+        textDecoration: 'none',
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -57,7 +62,7 @@ function WorkingOnCard({ item }: { item: WorkingOnItem }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: 'auto' }}>
         {item.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}
       </div>
-    </div>
+    </Link>
   )
 }
 
