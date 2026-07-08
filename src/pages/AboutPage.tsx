@@ -35,6 +35,12 @@ const interests: Interest[] = [
     media: ['/images/skiing.jpg', '/videos/snowboard.mp4'],
   },
   {
+    title: 'Golf',
+    description: "The newest one. I started playing recently and I'm still learning the game.",
+    icon: 'mdi:golf',
+    badge: 'Just started',
+  },
+  {
     title: 'Live concerts',
     description: 'There\'s nothing quite like the energy of a room when an artist lands on a great song. I try to catch shows whenever I can.',
     icon: 'lucide:disc-3',
