@@ -1,7 +1,7 @@
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router-dom'
-import { useRef, useState } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react'
+import { useState } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
 import { Label, PageHeading } from '../components/shared'
 import { Parallax, SlideIn } from '../components/motion'
 import { GradeOverlay, MediaFrame, ZoomFrame, GRAIN_URL } from '../components/media'
@@ -180,19 +180,21 @@ function AboutHeading({ index, eyebrow, title }: Readonly<{ index: string; eyebr
   )
 }
 
-/** Opening mechanic: the headline rises into view word by word. */
+/** Opening mechanic: the headline rises into view word by word.
+ *  The in-view trigger sits on the (visible) parent, NOT on the clipped
+ *  words — a word translated fully outside its overflow-hidden mask has zero
+ *  visible area, so IntersectionObserver never fires on it and the headline
+ *  would stay hidden forever. Variants propagate down instead. */
 function WordRise({ text }: Readonly<{ text: string }>) {
   const reduce = useReducedMotion()
   const words = text.split(' ')
   return (
-    <>
+    <motion.span initial={reduce ? false : 'hidden'} whileInView="visible" viewport={{ once: true }}>
       {words.map((word, i) => (
         <span key={word + i} style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom' }}>
           <motion.span
             style={{ display: 'inline-block' }}
-            initial={reduce ? false : { y: '110%' }}
-            whileInView={{ y: 0 }}
-            viewport={{ once: true }}
+            variants={{ hidden: { y: '110%' }, visible: { y: 0 } }}
             transition={{ duration: 0.65, delay: 0.1 + i * 0.09, ease: [0.22, 1, 0.36, 1] }}
           >
             {word}
@@ -200,55 +202,8 @@ function WordRise({ text }: Readonly<{ text: string }>) {
           </motion.span>
         </span>
       ))}
-    </>
+    </motion.span>
   )
-}
-
-/** Story mechanic: the pull-quote lights up word by word, driven by scroll —
- *  reading pace is literally in the visitor's hands. */
-function ScrubQuote({ text }: Readonly<{ text: string }>) {
-  const ref = useRef<HTMLParagraphElement>(null)
-  const reduce = useReducedMotion()
-  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.9', 'start 0.45'] })
-  const words = text.split(' ')
-
-  const style: React.CSSProperties = {
-    fontSize: 'clamp(1.5rem, 3.2vw, 2.2rem)',
-    color: 'var(--text)',
-    lineHeight: 1.3,
-    maxWidth: '760px',
-    borderLeft: '2px solid var(--accent)',
-    paddingLeft: '24px',
-    margin: 0,
-  }
-
-  if (reduce) {
-    return (
-      <p className="font-display" style={style}>
-        {text}
-      </p>
-    )
-  }
-
-  return (
-    <p ref={ref} className="font-display" style={style}>
-      {words.map((word, i) => (
-        <QuoteWord key={word + i} word={word} index={i} total={words.length} progress={scrollYProgress} />
-      ))}
-    </p>
-  )
-}
-
-function QuoteWord({
-  word,
-  index,
-  total,
-  progress,
-}: Readonly<{ word: string; index: number; total: number; progress: MotionValue<number> }>) {
-  const start = index / total
-  const end = (index + 1) / total
-  const opacity = useTransform(progress, [start, end], [0.16, 1], { clamp: true })
-  return <motion.span style={{ opacity }}>{word} </motion.span>
 }
 
 /** Currently mechanic: each divider line draws itself before its row fades in. */
@@ -647,7 +602,22 @@ function AboutPage() {
             </div>
           </div>
         </SlideIn>
-        <ScrubQuote text="The discipline that finishes a marathon is the discipline that ships the code." />
+        <SlideIn from="right">
+          <p
+            className="font-display"
+            style={{
+              fontSize: 'clamp(1.5rem, 3.2vw, 2.2rem)',
+              color: 'var(--text)',
+              lineHeight: 1.3,
+              maxWidth: '760px',
+              borderLeft: '2px solid var(--accent)',
+              paddingLeft: '24px',
+              margin: 0,
+            }}
+          >
+            The discipline that finishes a marathon is the discipline that ships the code.
+          </p>
+        </SlideIn>
       </Scene>
 
       {/* Scene 3 — currently: a band where each divider draws itself */}
