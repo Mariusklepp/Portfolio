@@ -1,19 +1,23 @@
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router-dom'
-import { useState } from 'react'
-import { Reveal, Label, PageHeading } from '../components/shared'
+import { useRef, useState } from 'react'
+import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from 'motion/react'
+import { Label, PageHeading } from '../components/shared'
 import { Parallax, SlideIn } from '../components/motion'
-import { GradeOverlay, MediaFrame, GRAIN_URL } from '../components/media'
+import { GradeOverlay, MediaFrame, ZoomFrame, GRAIN_URL } from '../components/media'
 import { pursuits } from '../data/pursuits'
 import { reading } from '../data/reading'
 import Button from '../components/Button'
 
 /**
  * The About page is "the long version": the landing's Get to know me section
- * is the teaser, this is where people actually get to know Marius. The three
- * pursuits are chapters that open into their own deep pages (/about/:slug);
- * concerts and investing stay as plain chapters. All copy follows the voice
- * rule in CLAUDE.md — written like Marius wrote it himself, and only true.
+ * is the teaser, this is where people actually get to know Marius. The page
+ * is built as a sequence of SCENES, each with its own motion mechanic (word
+ * rise, scroll-lit quote, self-drawing dividers, inner-zooming photos, a
+ * popping skills wave) and alternating full-width bands, so scrolling it
+ * feels like travelling through sections — never like reading a document.
+ * The three pursuits open into deep pages (/about/:slug). All copy follows
+ * the voice rule in CLAUDE.md — written like Marius, and only true.
  */
 
 interface Interest {
@@ -91,6 +95,186 @@ const skills = [
   { name: 'SQL',         icon: 'devicon:mysql' },
 ]
 
+/* ------------------------------------------------------------------ */
+/* Scene plumbing                                                      */
+/* ------------------------------------------------------------------ */
+
+/** A full-width scene. `band` scenes sit on a faint lifted background with
+ *  hairline edges, so the page visibly alternates between open dark space
+ *  and contained sections. */
+function Scene({ children, band = false }: Readonly<{ children: React.ReactNode; band?: boolean }>) {
+  return (
+    <section
+      style={{
+        position: 'relative',
+        padding: 'clamp(64px, 10vh, 110px) 24px',
+        ...(band
+          ? {
+              background: 'linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.012))',
+              borderTop: '1px solid var(--border)',
+              borderBottom: '1px solid var(--border)',
+            }
+          : {}),
+      }}
+    >
+      <div style={{ maxWidth: '1024px', margin: '0 auto' }}>{children}</div>
+    </section>
+  )
+}
+
+/** Section heading in the landing's language: a big ghost number drifting
+ *  behind (parallax depth), mono eyebrow, condensed caps title sliding in
+ *  from the left. */
+function AboutHeading({ index, eyebrow, title }: Readonly<{ index: string; eyebrow: string; title: string }>) {
+  return (
+    <div style={{ position: 'relative', marginBottom: '48px' }}>
+      <Parallax amount={40}>
+        <span
+          aria-hidden
+          className="font-condensed"
+          style={{
+            position: 'absolute',
+            top: '-0.55em',
+            left: '-0.04em',
+            fontSize: 'clamp(5.5rem, 14vw, 12rem)',
+            fontWeight: 800,
+            lineHeight: 0.8,
+            color: 'rgba(245, 243, 240, 0.035)',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {index}
+        </span>
+      </Parallax>
+      <SlideIn from="left">
+        <span
+          className="font-mono-label"
+          style={{
+            display: 'block',
+            fontSize: '12px',
+            color: 'var(--accent)',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            marginBottom: '14px',
+          }}
+        >
+          {index} — {eyebrow}
+        </span>
+        <h2
+          className="font-condensed"
+          style={{
+            fontSize: 'clamp(2.2rem, 5.5vw, 3.6rem)',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            lineHeight: 0.9,
+            color: 'var(--text)',
+            margin: 0,
+          }}
+        >
+          {title}
+        </h2>
+      </SlideIn>
+    </div>
+  )
+}
+
+/** Opening mechanic: the headline rises into view word by word. */
+function WordRise({ text }: Readonly<{ text: string }>) {
+  const reduce = useReducedMotion()
+  const words = text.split(' ')
+  return (
+    <>
+      {words.map((word, i) => (
+        <span key={word + i} style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom' }}>
+          <motion.span
+            style={{ display: 'inline-block' }}
+            initial={reduce ? false : { y: '110%' }}
+            whileInView={{ y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.65, delay: 0.1 + i * 0.09, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {word}
+            {i < words.length - 1 ? ' ' : ''}
+          </motion.span>
+        </span>
+      ))}
+    </>
+  )
+}
+
+/** Story mechanic: the pull-quote lights up word by word, driven by scroll —
+ *  reading pace is literally in the visitor's hands. */
+function ScrubQuote({ text }: Readonly<{ text: string }>) {
+  const ref = useRef<HTMLParagraphElement>(null)
+  const reduce = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start 0.9', 'start 0.45'] })
+  const words = text.split(' ')
+
+  const style: React.CSSProperties = {
+    fontSize: 'clamp(1.5rem, 3.2vw, 2.2rem)',
+    color: 'var(--text)',
+    lineHeight: 1.3,
+    maxWidth: '760px',
+    borderLeft: '2px solid var(--accent)',
+    paddingLeft: '24px',
+    margin: 0,
+  }
+
+  if (reduce) {
+    return (
+      <p className="font-display" style={style}>
+        {text}
+      </p>
+    )
+  }
+
+  return (
+    <p ref={ref} className="font-display" style={style}>
+      {words.map((word, i) => (
+        <QuoteWord key={word + i} word={word} index={i} total={words.length} progress={scrollYProgress} />
+      ))}
+    </p>
+  )
+}
+
+function QuoteWord({
+  word,
+  index,
+  total,
+  progress,
+}: Readonly<{ word: string; index: number; total: number; progress: MotionValue<number> }>) {
+  const start = index / total
+  const end = (index + 1) / total
+  const opacity = useTransform(progress, [start, end], [0.16, 1], { clamp: true })
+  return <motion.span style={{ opacity }}>{word} </motion.span>
+}
+
+/** Currently mechanic: each divider line draws itself before its row fades in. */
+function DrawnRow({ children, index }: Readonly<{ children: React.ReactNode; index: number }>) {
+  const reduce = useReducedMotion()
+  return (
+    <div>
+      <motion.div
+        aria-hidden
+        initial={reduce ? false : { scaleX: 0 }}
+        whileInView={{ scaleX: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
+        style={{ height: '1px', background: 'var(--border)', transformOrigin: 'left' }}
+      />
+      <SlideIn from="left" delay={index * 0.12 + 0.15}>
+        {children}
+      </SlideIn>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Media + chapters                                                    */
+/* ------------------------------------------------------------------ */
+
 function MediaCarousel({ media, alt }: Readonly<{ media: string[]; alt: string }>) {
   const [index, setIndex] = useState(0)
   const [fading, setFading] = useState(false)
@@ -130,7 +314,9 @@ function MediaCarousel({ media, alt }: Readonly<{ media: string[]; alt: string }
           transition: 'opacity 0.2s ease',
         }}
       >
-        <MediaFrame src={media[index]} alt={`${alt} ${index + 1} of ${media.length}`} />
+        <ZoomFrame style={{ position: 'absolute', inset: 0 }}>
+          <MediaFrame src={media[index]} alt={`${alt} ${index + 1} of ${media.length}`} />
+        </ZoomFrame>
         <GradeOverlay />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
@@ -191,7 +377,9 @@ function InterestVisual({ item }: Readonly<{ item: Interest }>) {
   if (media.length === 1) {
     return (
       <div style={containerStyle}>
-        <MediaFrame src={media[0]} alt={item.title} />
+        <ZoomFrame style={{ position: 'absolute', inset: 0 }}>
+          <MediaFrame src={media[0]} alt={item.title} />
+        </ZoomFrame>
         <GradeOverlay />
       </div>
     )
@@ -232,8 +420,8 @@ function InterestEntry({ item, index }: Readonly<{ item: Interest; index: number
         alignItems: 'center',
       }}
     >
-      {/* media and text arrive from opposite sides; the image drifts at its
-          own rate (parallax) so the chapter has depth while scrolling */}
+      {/* media and text arrive from opposite sides; the image drifts with
+          parallax AND zooms inside its frame while scrolling */}
       <SlideIn from={reversed ? 'right' : 'left'} style={{ order: reversed ? 2 : 1 }}>
         <Parallax amount={24}>
           <InterestVisual item={item} />
@@ -326,116 +514,71 @@ function BookRow({ title, author, note }: Readonly<{ title: string; author: stri
   )
 }
 
-/** Section heading in the landing's language: a big ghost number drifting
- *  behind (parallax depth), mono eyebrow, condensed caps title sliding in
- *  from the left — the "something happens as you scroll" ingredient. */
-function AboutHeading({ index, eyebrow, title }: Readonly<{ index: string; eyebrow: string; title: string }>) {
-  return (
-    <div style={{ position: 'relative', marginBottom: '48px' }}>
-      <Parallax amount={40}>
-        <span
-          aria-hidden
-          className="font-condensed"
-          style={{
-            position: 'absolute',
-            top: '-0.55em',
-            left: '-0.04em',
-            fontSize: 'clamp(5.5rem, 14vw, 12rem)',
-            fontWeight: 800,
-            lineHeight: 0.8,
-            color: 'rgba(245, 243, 240, 0.035)',
-            pointerEvents: 'none',
-            userSelect: 'none',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {index}
-        </span>
-      </Parallax>
-      <SlideIn from="left">
-        <span
-          className="font-mono-label"
-          style={{
-            display: 'block',
-            fontSize: '12px',
-            color: 'var(--accent)',
-            letterSpacing: '0.22em',
-            textTransform: 'uppercase',
-            marginBottom: '14px',
-          }}
-        >
-          {index} — {eyebrow}
-        </span>
-        <h2
-          className="font-condensed"
-          style={{
-            fontSize: 'clamp(2.2rem, 5.5vw, 3.6rem)',
-            fontWeight: 800,
-            textTransform: 'uppercase',
-            lineHeight: 0.9,
-            color: 'var(--text)',
-            margin: 0,
-          }}
-        >
-          {title}
-        </h2>
-      </SlideIn>
-    </div>
-  )
-}
-
+/** Skills mechanic: the grid pops in as a stagger wave (spring scale). */
 function SkillCard({ skill, delay }: { skill: { name: string; icon: string }; delay: number }) {
+  const reduce = useReducedMotion()
   const [hovered, setHovered] = useState(false)
   return (
-    <Reveal delay={delay}>
-      <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        className="cursor-default"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          padding: '12px 16px',
-          borderRadius: '10px',
-          border: `1px solid ${hovered ? 'var(--accent)' : 'var(--border)'}`,
-          background: hovered ? 'var(--accent-dim)' : 'var(--surface)',
-          transition: 'border-color 0.2s, background 0.2s',
-        }}
-      >
-        <Icon icon={skill.icon} width={22} height={22} />
-        <span style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500 }}>{skill.name}</span>
-      </div>
-    </Reveal>
+    <motion.div
+      initial={reduce ? false : { opacity: 0, scale: 0.8, y: 16 }}
+      whileInView={{ opacity: 1, scale: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ delay, type: 'spring', stiffness: 280, damping: 20 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="cursor-default"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '12px 16px',
+        borderRadius: '10px',
+        border: `1px solid ${hovered ? 'var(--accent)' : 'var(--border)'}`,
+        background: hovered ? 'var(--accent-dim)' : 'var(--surface)',
+        transition: 'border-color 0.2s, background 0.2s',
+      }}
+    >
+      <Icon icon={skill.icon} width={22} height={22} />
+      <span style={{ color: 'var(--text)', fontSize: '14px', fontWeight: 500 }}>{skill.name}</span>
+    </motion.div>
   )
 }
 
+/* ------------------------------------------------------------------ */
+/* The page                                                            */
+/* ------------------------------------------------------------------ */
+
 function AboutPage() {
+  const reduce = useReducedMotion()
   const hasReading = reading.current !== null || reading.read.length > 0 || reading.planned.length > 0
 
   return (
-    <div style={{ minHeight: '100vh', padding: '128px 24px 96px' }}>
-      <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
-        {/* Opening — the long version of the landing's short version */}
+    <div style={{ minHeight: '100vh', paddingTop: '104px', paddingBottom: '96px' }}>
+      {/* Scene 1 — the greeting: headline rises word by word, portrait
+          settles from a slow zoom */}
+      <Scene>
         <div
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
             gap: '48px',
             alignItems: 'center',
-            marginBottom: '96px',
           }}
         >
-          <SlideIn from="left">
+          <div>
             <Label n="01" text="about" />
-            <PageHeading>Hi, I'm Marius.</PageHeading>
-            <p style={{ color: 'var(--muted)', maxWidth: '520px', lineHeight: 1.8, fontSize: '16px' }}>
-              Software development student at NTNU in Trondheim. I treat code a bit like training:
-              show up, do the reps, finish what you start. This page is the rest of the picture.
-            </p>
-          </SlideIn>
+            <PageHeading>
+              <WordRise text="Hi, I'm Marius." />
+            </PageHeading>
+            <SlideIn from="up" delay={0.4}>
+              <p style={{ color: 'var(--muted)', maxWidth: '520px', lineHeight: 1.8, fontSize: '16px' }}>
+                Software development student at NTNU in Trondheim. I treat code a bit like training:
+                show up, do the reps, finish what you start. This page is the rest of the picture.
+              </p>
+            </SlideIn>
+          </div>
 
-          <SlideIn from="right" delay={0.1}>
+          <SlideIn from="right" delay={0.15}>
             <Parallax amount={26}>
               {/* portrait placeholder — Marius is taking a new photo for this spot */}
               <div
@@ -449,9 +592,13 @@ function AboutPage() {
                   border: '1px solid var(--border)',
                 }}
               >
-                <img
+                <motion.img
                   src="/images/strength.jpg"
                   alt="Marius Klepp"
+                  initial={reduce ? false : { scale: 1.12 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1.6, ease: [0.22, 1, 0.36, 1] }}
                   style={{
                     width: '100%',
                     height: '100%',
@@ -477,11 +624,14 @@ function AboutPage() {
             </Parallax>
           </SlideIn>
         </div>
+      </Scene>
 
-        {/* The story */}
+      {/* Scene 2 — the story: paragraphs from the left, and a pull-quote the
+          visitor lights up word by word with their own scroll */}
+      <Scene>
         <AboutHeading index="02" eyebrow="The story" title="How I work" />
         <SlideIn from="left">
-          <div style={{ maxWidth: '680px', marginBottom: '40px' }}>
+          <div style={{ maxWidth: '680px', marginBottom: '48px' }}>
             <div style={{ color: 'var(--muted)', lineHeight: 1.85, fontSize: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <p>
                 I like building things that are clean, useful and{' '}
@@ -497,36 +647,21 @@ function AboutPage() {
             </div>
           </div>
         </SlideIn>
+        <ScrubQuote text="The discipline that finishes a marathon is the discipline that ships the code." />
+      </Scene>
 
-        <SlideIn from="right">
-          <p
-            className="font-display"
-            style={{
-              fontSize: 'clamp(1.5rem, 3.2vw, 2.2rem)',
-              color: 'var(--text)',
-              lineHeight: 1.3,
-              maxWidth: '760px',
-              borderLeft: '2px solid var(--accent)',
-              paddingLeft: '24px',
-              marginBottom: '120px',
-            }}
-          >
-            The discipline that finishes a marathon is the discipline that ships the code.
-          </p>
-        </SlideIn>
-
-        {/* Right now — plain status rows (replaces the old flip card) */}
+      {/* Scene 3 — currently: a band where each divider draws itself */}
+      <Scene band>
         <AboutHeading index="03" eyebrow="Right now" title="Currently" />
-        <div style={{ marginBottom: '120px', borderBottom: '1px solid var(--border)' }}>
+        <div>
           {currently.map((item, i) => (
-            <SlideIn key={item} from="left" delay={i * 0.07}>
+            <DrawnRow key={item} index={i}>
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'baseline',
                   gap: '24px',
                   padding: '16px 4px',
-                  borderTop: '1px solid var(--border)',
                 }}
               >
                 <span className="font-mono-label" style={{ fontSize: '11px', color: 'var(--accent)', letterSpacing: '0.1em' }}>
@@ -534,102 +669,114 @@ function AboutPage() {
                 </span>
                 <span style={{ fontSize: '15px', color: 'var(--text)' }}>{item}</span>
               </div>
-            </SlideIn>
+            </DrawnRow>
           ))}
+          <motion.div
+            aria-hidden
+            initial={reduce ? false : { scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: currently.length * 0.12, ease: [0.22, 1, 0.36, 1] }}
+            style={{ height: '1px', background: 'var(--border)', transformOrigin: 'left' }}
+          />
         </div>
+      </Scene>
 
-        {/* In my free time — the chapters; the three pursuits open into their
-            own deep pages */}
+      {/* Scene 4 — free time: chapters arrive from opposite sides, photos
+          drift with parallax and zoom inside their frames */}
+      <Scene>
         <AboutHeading index="04" eyebrow="Free time" title="In my free time" />
         <SlideIn from="left">
-          <p style={{ color: 'var(--muted)', maxWidth: '560px', lineHeight: 1.7, marginTop: '-16px', marginBottom: '64px', fontSize: '15px' }}>
+          <p style={{ color: 'var(--muted)', maxWidth: '560px', lineHeight: 1.7, marginTop: '-16px', marginBottom: '72px', fontSize: '15px' }}>
             The stuff that fills the hours around the code. The first three have their own pages
             with more detail.
           </p>
         </SlideIn>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '88px', marginBottom: '96px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '96px' }}>
           {interests.map((item, i) => (
             <InterestEntry key={item.title} item={item} index={i} />
           ))}
         </div>
+      </Scene>
 
-        {/* Reading — hidden until src/data/reading.ts has real titles */}
-        {hasReading && (
-          <>
-            <AboutHeading index="05" eyebrow="Reading" title="On the bookshelf" />
-            <div style={{ marginBottom: '96px', display: 'flex', flexDirection: 'column', gap: '48px' }}>
-              {reading.current && (
-                <Reveal>
-                  <div
+      {/* Scene 5 — reading: hidden until src/data/reading.ts has real titles */}
+      {hasReading && (
+        <Scene band>
+          <AboutHeading index="05" eyebrow="Reading" title="On the bookshelf" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
+            {reading.current && (
+              <SlideIn from="left">
+                <div
+                  style={{
+                    border: '1px solid var(--border)',
+                    borderRadius: '14px',
+                    padding: '28px',
+                    maxWidth: '560px',
+                    background: 'var(--bg)',
+                  }}
+                >
+                  <span
+                    className="font-mono-label"
                     style={{
-                      border: '1px solid var(--border)',
-                      borderRadius: '14px',
-                      padding: '28px',
-                      maxWidth: '560px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '11px',
+                      color: 'var(--accent)',
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      marginBottom: '14px',
                     }}
                   >
-                    <span
-                      className="font-mono-label"
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '11px',
-                        color: 'var(--accent)',
-                        letterSpacing: '0.18em',
-                        textTransform: 'uppercase',
-                        marginBottom: '14px',
-                      }}
-                    >
-                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor', animation: 'pulse 2s infinite' }} />
-                      Reading now
-                    </span>
-                    <h3 className="font-display" style={{ fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', color: 'var(--text)', lineHeight: 1.2 }}>
-                      {reading.current.title}
-                    </h3>
-                    <p className="font-mono-label" style={{ marginTop: '8px', fontSize: '12px', color: 'var(--muted)', letterSpacing: '0.08em' }}>
-                      {reading.current.author}
-                    </p>
-                    {reading.current.note && (
-                      <p style={{ marginTop: '14px', fontSize: '14px', lineHeight: 1.7, color: 'var(--muted)' }}>{reading.current.note}</p>
-                    )}
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor', animation: 'pulse 2s infinite' }} />
+                    Reading now
+                  </span>
+                  <h3 className="font-display" style={{ fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', color: 'var(--text)', lineHeight: 1.2 }}>
+                    {reading.current.title}
+                  </h3>
+                  <p className="font-mono-label" style={{ marginTop: '8px', fontSize: '12px', color: 'var(--muted)', letterSpacing: '0.08em' }}>
+                    {reading.current.author}
+                  </p>
+                  {reading.current.note && (
+                    <p style={{ marginTop: '14px', fontSize: '14px', lineHeight: 1.7, color: 'var(--muted)' }}>{reading.current.note}</p>
+                  )}
+                </div>
+              </SlideIn>
+            )}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '48px' }}>
+              {reading.read.length > 0 && (
+                <SlideIn from="left">
+                  <span className="font-mono-label" style={{ display: 'block', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                    Read
+                  </span>
+                  <div style={{ borderBottom: '1px solid var(--border)' }}>
+                    {reading.read.map((book) => (
+                      <BookRow key={book.title} {...book} />
+                    ))}
                   </div>
-                </Reveal>
+                </SlideIn>
               )}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '48px' }}>
-                {reading.read.length > 0 && (
-                  <Reveal>
-                    <span className="font-mono-label" style={{ display: 'block', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '10px' }}>
-                      Read
-                    </span>
-                    <div style={{ borderBottom: '1px solid var(--border)' }}>
-                      {reading.read.map((book) => (
-                        <BookRow key={book.title} {...book} />
-                      ))}
-                    </div>
-                  </Reveal>
-                )}
-                {reading.planned.length > 0 && (
-                  <Reveal delay={60}>
-                    <span className="font-mono-label" style={{ display: 'block', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '10px' }}>
-                      Up next
-                    </span>
-                    <div style={{ borderBottom: '1px solid var(--border)' }}>
-                      {reading.planned.map((book) => (
-                        <BookRow key={book.title} {...book} />
-                      ))}
-                    </div>
-                  </Reveal>
-                )}
-              </div>
+              {reading.planned.length > 0 && (
+                <SlideIn from="right">
+                  <span className="font-mono-label" style={{ display: 'block', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                    Up next
+                  </span>
+                  <div style={{ borderBottom: '1px solid var(--border)' }}>
+                    {reading.planned.map((book) => (
+                      <BookRow key={book.title} {...book} />
+                    ))}
+                  </div>
+                </SlideIn>
+              )}
             </div>
-          </>
-        )}
+          </div>
+        </Scene>
+      )}
 
-        {/* Education */}
+      {/* Scene 6 — education */}
+      <Scene>
         <AboutHeading index={hasReading ? '06' : '05'} eyebrow="Background" title="Education" />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '120px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {education.map((item, i) => (
             <SlideIn key={item.institution + item.period} from="left" delay={i * 0.08}>
               <div
@@ -739,16 +886,20 @@ function AboutPage() {
             </SlideIn>
           ))}
         </div>
+      </Scene>
 
-        {/* Tech stack */}
+      {/* Scene 7 — skills: a band where the grid pops in as a wave */}
+      <Scene band>
         <AboutHeading index={hasReading ? '07' : '06'} eyebrow="Tech stack" title="Skills" />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px', marginBottom: '120px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px' }}>
           {skills.map((skill, i) => (
-            <SkillCard key={skill.name} skill={skill} delay={i * 55} />
+            <SkillCard key={skill.name} skill={skill} delay={i * 0.05} />
           ))}
         </div>
+      </Scene>
 
-        {/* CTA — same language as the landing's contact section */}
+      {/* Scene 8 — CTA, same language as the landing's contact section */}
+      <Scene>
         <SlideIn from="up">
           <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
             <span
@@ -782,7 +933,7 @@ function AboutPage() {
             </div>
           </div>
         </SlideIn>
-      </div>
+      </Scene>
     </div>
   )
 }
