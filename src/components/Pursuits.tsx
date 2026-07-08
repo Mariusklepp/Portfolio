@@ -4,12 +4,13 @@ import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScro
 import { pursuits } from '../data/home'
 
 /** Extra scroll distance the pin lasts — the "dwell" that drives the words. */
-const TRACK_PX = 1800
+const TRACK_PX = 2400
 /** Progress band that steps through the words; before = first word, after = CTA.
-    WORDS_END sits well before the zoom-out (0.9) so the finished button gets a
-    beat of dwell where it's the only thing lit. */
+    WORDS_END sits well before the zoom-out (0.9) on purpose: everything from
+    WORDS_END to 0.9 is deliberate dead scroll where nothing changes and the
+    finished button is the only thing lit — dwell time, not a bug. */
 const WORDS_START = 0.12
-const WORDS_END = 0.7
+const WORDS_END = 0.55
 
 const eyebrowStyle: React.CSSProperties = {
   display: 'block',
@@ -20,7 +21,7 @@ const eyebrowStyle: React.CSSProperties = {
   marginBottom: '16px',
 }
 const titleStyle: React.CSSProperties = {
-  fontSize: 'clamp(2.4rem, 6vw, 4.6rem)',
+  fontSize: 'clamp(2.2rem, 5vw, 4rem)',
   fontWeight: 800,
   textTransform: 'uppercase',
   lineHeight: 0.88,
@@ -30,7 +31,7 @@ const titleStyle: React.CSSProperties = {
 }
 const wordStyle: React.CSSProperties = {
   display: 'block',
-  fontSize: 'clamp(2rem, 5vw, 3.6rem)',
+  fontSize: 'clamp(2rem, 4.5vw, 3.4rem)',
   fontWeight: 800,
   textTransform: 'uppercase',
   lineHeight: 1.05,
@@ -209,6 +210,7 @@ export default function Pursuits() {
 
   return (
     <section ref={sectionRef} data-chapter={3} style={{ position: 'relative', height: `calc(100vh + ${TRACK_PX}px)` }}>
+      {/* top padding keeps the fixed navbar clear of the heading */}
       <motion.div
         style={{
           position: 'sticky',
@@ -217,15 +219,22 @@ export default function Pursuits() {
           overflow: 'hidden',
           display: 'flex',
           alignItems: 'center',
+          padding: 'clamp(84px, 12vh, 120px) 0 clamp(32px, 5vh, 56px)',
           scale,
           opacity,
         }}
       >
-        <div style={{ width: '100%', maxWidth: '1180px', margin: '0 auto', padding: '0 clamp(20px, 5vw, 48px)' }}>
-          <div style={{ marginBottom: 'clamp(20px, 3.5vh, 36px)' }}>{heading}</div>
-          <div style={{ marginBottom: 'clamp(20px, 3.5vh, 36px)' }}>{intro}</div>
-          {stack(false)}
-          {cta(ctaHot)}
+        {/* two columns on desktop — identity left, word stack right — so the
+            pin uses the width instead of cramming everything vertically */}
+        <div className="pursuit-stage">
+          <div>
+            {heading}
+            <div style={{ marginTop: 'clamp(18px, 3vh, 30px)' }}>{intro}</div>
+          </div>
+          <div>
+            {stack(false)}
+            {cta(ctaHot)}
+          </div>
         </div>
       </motion.div>
     </section>

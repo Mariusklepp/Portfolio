@@ -375,6 +375,27 @@ a:focus-visible {
   color: var(--accent);
   opacity: 1;
 }
+/* "Get to know me" pinned stage: identity on the left, word stack on the
+   right, so the pin breathes instead of stacking everything vertically.
+   Collapses to one column on narrow screens. */
+.pursuit-stage {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 5vw, 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .pursuit-stage {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+}
+
 /* Currently-building cards are links to their project pages — the hover lift
    + accent border is the "this is clickable" affordance. */
 .working-card {
