@@ -1,8 +1,8 @@
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import { Reveal, Label, PageHeading, SectionHeading } from '../components/shared'
-import { Parallax } from '../components/motion'
+import { Reveal, Label, PageHeading } from '../components/shared'
+import { Parallax, SlideIn } from '../components/motion'
 import { GradeOverlay, MediaFrame, GRAIN_URL } from '../components/media'
 import { pursuits } from '../data/pursuits'
 import { reading } from '../data/reading'
@@ -57,7 +57,6 @@ const interests: Interest[] = [
 const currently = [
   'Studying software development at NTNU, Trondheim',
   'Building JARVIS and Deep Core',
-  'Teaching myself Blender',
   'Open to freelance work',
 ]
 
@@ -225,19 +224,23 @@ function InterestVisual({ item }: Readonly<{ item: Interest }>) {
 function InterestEntry({ item, index }: Readonly<{ item: Interest; index: number }>) {
   const reversed = index % 2 === 1
   return (
-    <Reveal delay={index * 50}>
-      <article
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-          gap: '48px',
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ order: reversed ? 2 : 1 }}>
+    <article
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+        gap: '48px',
+        alignItems: 'center',
+      }}
+    >
+      {/* media and text arrive from opposite sides; the image drifts at its
+          own rate (parallax) so the chapter has depth while scrolling */}
+      <SlideIn from={reversed ? 'right' : 'left'} style={{ order: reversed ? 2 : 1 }}>
+        <Parallax amount={24}>
           <InterestVisual item={item} />
-        </div>
-        <div style={{ order: reversed ? 1 : 2, display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        </Parallax>
+      </SlideIn>
+      <SlideIn from={reversed ? 'left' : 'right'} style={{ order: reversed ? 1 : 2 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <span
             className="font-mono-label"
             style={{
@@ -304,8 +307,8 @@ function InterestEntry({ item, index }: Readonly<{ item: Interest; index: number
             </Link>
           )}
         </div>
-      </article>
-    </Reveal>
+      </SlideIn>
+    </article>
   )
 }
 
@@ -319,6 +322,64 @@ function BookRow({ title, author, note }: Readonly<{ title: string; author: stri
         </span>
       </div>
       {note && <p style={{ marginTop: '6px', fontSize: '13px', lineHeight: 1.6, color: 'var(--muted)' }}>{note}</p>}
+    </div>
+  )
+}
+
+/** Section heading in the landing's language: a big ghost number drifting
+ *  behind (parallax depth), mono eyebrow, condensed caps title sliding in
+ *  from the left — the "something happens as you scroll" ingredient. */
+function AboutHeading({ index, eyebrow, title }: Readonly<{ index: string; eyebrow: string; title: string }>) {
+  return (
+    <div style={{ position: 'relative', marginBottom: '48px' }}>
+      <Parallax amount={40}>
+        <span
+          aria-hidden
+          className="font-condensed"
+          style={{
+            position: 'absolute',
+            top: '-0.55em',
+            left: '-0.04em',
+            fontSize: 'clamp(5.5rem, 14vw, 12rem)',
+            fontWeight: 800,
+            lineHeight: 0.8,
+            color: 'rgba(245, 243, 240, 0.035)',
+            pointerEvents: 'none',
+            userSelect: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {index}
+        </span>
+      </Parallax>
+      <SlideIn from="left">
+        <span
+          className="font-mono-label"
+          style={{
+            display: 'block',
+            fontSize: '12px',
+            color: 'var(--accent)',
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            marginBottom: '14px',
+          }}
+        >
+          {index} — {eyebrow}
+        </span>
+        <h2
+          className="font-condensed"
+          style={{
+            fontSize: 'clamp(2.2rem, 5.5vw, 3.6rem)',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            lineHeight: 0.9,
+            color: 'var(--text)',
+            margin: 0,
+          }}
+        >
+          {title}
+        </h2>
+      </SlideIn>
     </div>
   )
 }
@@ -365,17 +426,16 @@ function AboutPage() {
             marginBottom: '96px',
           }}
         >
-          <Reveal>
+          <SlideIn from="left">
             <Label n="01" text="about" />
-            <PageHeading>The long version.</PageHeading>
+            <PageHeading>Hi, I'm Marius.</PageHeading>
             <p style={{ color: 'var(--muted)', maxWidth: '520px', lineHeight: 1.8, fontSize: '16px' }}>
-              I'm Marius, a software development student at NTNU in Trondheim. I treat code a bit
-              like training: show up, do the reps, finish what you start. This page is the rest of
-              the picture.
+              Software development student at NTNU in Trondheim. I treat code a bit like training:
+              show up, do the reps, finish what you start. This page is the rest of the picture.
             </p>
-          </Reveal>
+          </SlideIn>
 
-          <Reveal delay={120}>
+          <SlideIn from="right" delay={0.1}>
             <Parallax amount={26}>
               {/* portrait placeholder — Marius is taking a new photo for this spot */}
               <div
@@ -397,11 +457,10 @@ function AboutPage() {
                     height: '100%',
                     objectFit: 'cover',
                     objectPosition: 'center 20%',
-                    filter: 'grayscale(0.35) contrast(1.07) brightness(0.7)',
+                    filter: 'contrast(1.05) brightness(0.85)',
                     display: 'block',
                   }}
                 />
-                <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'var(--accent)', mixBlendMode: 'color', opacity: 0.16 }} />
                 <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,11,0.85), transparent 52%)' }} />
                 <div
                   aria-hidden
@@ -416,13 +475,13 @@ function AboutPage() {
                 />
               </div>
             </Parallax>
-          </Reveal>
+          </SlideIn>
         </div>
 
         {/* The story */}
-        <Reveal>
+        <AboutHeading index="02" eyebrow="The story" title="How I work" />
+        <SlideIn from="left">
           <div style={{ maxWidth: '680px', marginBottom: '40px' }}>
-            <Label n="02" text="the story" />
             <div style={{ color: 'var(--muted)', lineHeight: 1.85, fontSize: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <p>
                 I like building things that are clean, useful and{' '}
@@ -437,9 +496,9 @@ function AboutPage() {
               <p>A Java system, a web interface or a long run in the rain. The rule is the same.</p>
             </div>
           </div>
-        </Reveal>
+        </SlideIn>
 
-        <Reveal delay={80}>
+        <SlideIn from="right">
           <p
             className="font-display"
             style={{
@@ -449,21 +508,18 @@ function AboutPage() {
               maxWidth: '760px',
               borderLeft: '2px solid var(--accent)',
               paddingLeft: '24px',
-              marginBottom: '96px',
+              marginBottom: '120px',
             }}
           >
             The discipline that finishes a marathon is the discipline that ships the code.
           </p>
-        </Reveal>
+        </SlideIn>
 
         {/* Right now — plain status rows (replaces the old flip card) */}
-        <Reveal>
-          <Label n="03" text="right now" />
-          <SectionHeading>Currently</SectionHeading>
-        </Reveal>
-        <div style={{ marginBottom: '96px', borderBottom: '1px solid var(--border)' }}>
+        <AboutHeading index="03" eyebrow="Right now" title="Currently" />
+        <div style={{ marginBottom: '120px', borderBottom: '1px solid var(--border)' }}>
           {currently.map((item, i) => (
-            <Reveal key={item} delay={i * 60}>
+            <SlideIn key={item} from="left" delay={i * 0.07}>
               <div
                 style={{
                   display: 'flex',
@@ -478,20 +534,19 @@ function AboutPage() {
                 </span>
                 <span style={{ fontSize: '15px', color: 'var(--text)' }}>{item}</span>
               </div>
-            </Reveal>
+            </SlideIn>
           ))}
         </div>
 
         {/* In my free time — the chapters; the three pursuits open into their
             own deep pages */}
-        <Reveal>
-          <Label n="04" text="free time" />
-          <SectionHeading>In my free time</SectionHeading>
-          <p style={{ color: 'var(--muted)', maxWidth: '560px', lineHeight: 1.7, marginTop: '-32px', marginBottom: '64px', fontSize: '15px' }}>
+        <AboutHeading index="04" eyebrow="Free time" title="In my free time" />
+        <SlideIn from="left">
+          <p style={{ color: 'var(--muted)', maxWidth: '560px', lineHeight: 1.7, marginTop: '-16px', marginBottom: '64px', fontSize: '15px' }}>
             The stuff that fills the hours around the code. The first three have their own pages
             with more detail.
           </p>
-        </Reveal>
+        </SlideIn>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '88px', marginBottom: '96px' }}>
           {interests.map((item, i) => (
@@ -502,10 +557,7 @@ function AboutPage() {
         {/* Reading — hidden until src/data/reading.ts has real titles */}
         {hasReading && (
           <>
-            <Reveal>
-              <Label n="05" text="reading" />
-              <SectionHeading>On the bookshelf</SectionHeading>
-            </Reveal>
+            <AboutHeading index="05" eyebrow="Reading" title="On the bookshelf" />
             <div style={{ marginBottom: '96px', display: 'flex', flexDirection: 'column', gap: '48px' }}>
               {reading.current && (
                 <Reveal>
@@ -576,13 +628,10 @@ function AboutPage() {
         )}
 
         {/* Education */}
-        <Reveal>
-          <Label n={hasReading ? '06' : '05'} text="education" />
-          <SectionHeading>Education</SectionHeading>
-        </Reveal>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '96px' }}>
+        <AboutHeading index={hasReading ? '06' : '05'} eyebrow="Background" title="Education" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '120px' }}>
           {education.map((item, i) => (
-            <Reveal key={item.institution + item.period} delay={i * 80}>
+            <SlideIn key={item.institution + item.period} from="left" delay={i * 0.08}>
               <div
                 style={{
                   background: 'var(--surface)',
@@ -687,15 +736,12 @@ function AboutPage() {
                   {item.period}
                 </span>
               </div>
-            </Reveal>
+            </SlideIn>
           ))}
         </div>
 
         {/* Tech stack */}
-        <Reveal>
-          <Label n={hasReading ? '07' : '06'} text="tech stack" />
-          <SectionHeading>Skills</SectionHeading>
-        </Reveal>
+        <AboutHeading index={hasReading ? '07' : '06'} eyebrow="Tech stack" title="Skills" />
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px', marginBottom: '120px' }}>
           {skills.map((skill, i) => (
             <SkillCard key={skill.name} skill={skill} delay={i * 55} />
@@ -703,7 +749,7 @@ function AboutPage() {
         </div>
 
         {/* CTA — same language as the landing's contact section */}
-        <Reveal>
+        <SlideIn from="up">
           <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
             <span
               className="font-mono-label"
@@ -735,7 +781,7 @@ function AboutPage() {
               </Button>
             </div>
           </div>
-        </Reveal>
+        </SlideIn>
       </div>
     </div>
   )

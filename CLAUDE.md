@@ -98,9 +98,14 @@ Deep pages (project detail + expanded About) and the standalone Contact route ar
 
 ## About = "the long version"
 The About page's job: visitors leave feeling they actually know Marius. It's a
-**hub** (`src/pages/AboutPage.tsx`) — opening ("The long version." headline),
-story, a plain "Currently" row list (the old flip card is gone), the free-time
-chapters, a Reading/bookshelf section, education, skills, CTA. The three
+**hub** (`src/pages/AboutPage.tsx`) — opening ("Hi, I'm Marius." — they should
+feel greeted by an intro of who he is), story, a plain "Currently" row list
+(the old flip card is gone), the free-time chapters, a Reading/bookshelf
+section, education, skills, CTA. The page uses the landing's scroll
+choreography (ghost parallax numbers behind headings, SlideIn from the sides,
+parallax drift on chapter images) — it must never read like a static Word
+document. Photos carry NO color tint — the old red/pink wash was removed;
+grade is just bottom-sink + grain (`src/components/media.tsx`). The three
 pursuits (Training / Slalom & snowboard / Golf) are chapters that **open into
 their own deep pages** at `/about/:slug` (`src/pages/PursuitPage.tsx`) — the
 same pattern as project detail pages: golf will hold handicap + how the rounds
@@ -129,3 +134,5 @@ condensed caps). The dark base is unified via `--bg` = `#08080A`.
   sentence length. No robotic phrasing, no repetitive sentence patterns, no
   overly formal words, no em-dash tics.
 - `cv.pdf` lives in `public/` and is linked by the Download-CV buttons.
+- **Blender is not mentioned anywhere on the site** (removed July 2026 on
+  Marius's request — he does use it, but doesn't want it featured).

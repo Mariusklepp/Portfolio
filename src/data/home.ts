@@ -2,7 +2,6 @@ export const typewriterTexts = [
   'Software Development Student',
   'Building JARVIS in Python',
   'Designing Deep Core',
-  'Learning Blender',
   'Open to Freelance',
 ]
 
