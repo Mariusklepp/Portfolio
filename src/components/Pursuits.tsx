@@ -40,18 +40,17 @@ const wordStyle: React.CSSProperties = {
  * "Get to know me" as the landing's second pinned moment (same skeleton as the
  * horizontal gallery: own <section data-chapter>, sticky stage, zoom in/out at
  * the edges). The pursuits stand as a left-aligned stack of big condensed
- * words, and SCROLL drives which one is live — enter on TRAINING every time
- * (deterministic, no timer), step through the stack as you scroll the pin,
- * and land on the "More about me" line, which ignites as the exit beat. The
- * live word's detail unfolds accordion-style between it and the next word.
- * Hovering a word overrides the scroll pick while the pointer stays.
+ * words, and SCROLL alone drives which one is live — enter on TRAINING every
+ * time (deterministic, no timer, no hover), step through the stack as you
+ * scroll the pin, and land on the "More about me" button, which fills accent
+ * as the exit beat. The live word's detail unfolds accordion-style between it
+ * and the next word.
  */
 export default function Pursuits() {
   const sectionRef = useRef<HTMLElement>(null)
   const reduce = useReducedMotion()
-  const [scrollIdx, setScrollIdx] = useState(0)
+  const [active, setActive] = useState(0)
   const [ctaHot, setCtaHot] = useState(false)
-  const [pinned, setPinned] = useState<number | null>(null)
 
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] })
   // Same zoom language as the gallery, so both pinned moments read as siblings.
@@ -61,14 +60,12 @@ export default function Pursuits() {
   useMotionValueEvent(scrollYProgress, 'change', (p) => {
     const span = (WORDS_END - WORDS_START) / pursuits.length
     const idx = Math.min(Math.max(Math.floor((p - WORDS_START) / span), 0), pursuits.length - 1)
-    setScrollIdx((prev) => (prev === idx ? prev : idx))
+    setActive((prev) => (prev === idx ? prev : idx))
     setCtaHot((prev) => {
       const next = p >= WORDS_END
       return prev === next ? prev : next
     })
   })
-
-  const active = pinned ?? scrollIdx
 
   const heading = (
     <>
@@ -91,36 +88,64 @@ export default function Pursuits() {
     </p>
   )
 
-  const cta = (
+  // The CTA starts as a quiet typographic line; as the scrub's exit beat an
+  // accent outline TRACES itself around it (SVG stroke draw), turning the line
+  // into an unmistakable button. Scrolling back up un-draws it.
+  const cta = (hot: boolean) => (
     <Link
       to="/about"
-      className="pursuit-word font-condensed cursor-pointer"
-      data-active={ctaHot || reduce}
-      style={{ ...wordStyle, textDecoration: 'none' }}
+      className="pursuit-cta cursor-pointer"
+      data-active={hot}
+      style={{
+        position: 'relative',
+        display: 'inline-block',
+        marginTop: '18px',
+        marginLeft: '-18px',
+        padding: '10px 18px',
+        textDecoration: 'none',
+      }}
     >
-      More about me →
+      <svg
+        aria-hidden
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible', pointerEvents: 'none' }}
+      >
+        <motion.rect
+          x="0.75"
+          y="0.75"
+          width="100%"
+          height="100%"
+          rx="12"
+          fill="none"
+          stroke="var(--accent)"
+          strokeWidth="1.5"
+          initial={false}
+          animate={{ pathLength: hot ? 1 : 0, opacity: hot ? 1 : 0 }}
+          transition={{ duration: 0.55, ease: 'easeInOut' }}
+        />
+      </svg>
+      <span
+        className="pursuit-cta-label font-condensed"
+        style={{
+          fontSize: 'clamp(1.5rem, 2.6vw, 2.2rem)',
+          fontWeight: 700,
+          textTransform: 'uppercase',
+          letterSpacing: '0.02em',
+          lineHeight: 1.05,
+          color: 'var(--text)',
+        }}
+      >
+        More about me →
+      </span>
     </Link>
   )
 
   const stack = (expandAll: boolean) => (
-    <div
-      onMouseLeave={() => setPinned(null)}
-      style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', rowGap: '8px' }}
-    >
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', rowGap: '8px' }}>
       {pursuits.map((p, i) => (
         <div key={p.name}>
-          <button
-            type="button"
-            className="pursuit-word font-condensed"
-            data-active={i === active}
-            onMouseEnter={() => setPinned(i)}
-            onFocus={() => setPinned(i)}
-            onBlur={() => setPinned((prev) => (prev === i ? null : prev))}
-            onClick={() => setPinned(i)}
-            style={wordStyle}
-          >
+          <span className="pursuit-word font-condensed" data-active={i === active || expandAll} style={wordStyle}>
             {p.name}
-          </button>
+          </span>
 
           {/* The live word's detail unfolds here — between this word and the
               next. height:auto animation + overflow hidden = clean accordion. */}
@@ -162,7 +187,6 @@ export default function Pursuits() {
           </AnimatePresence>
         </div>
       ))}
-      {cta}
     </div>
   )
 
@@ -176,6 +200,7 @@ export default function Pursuits() {
         <div style={{ marginBottom: '40px' }}>{heading}</div>
         <div style={{ marginBottom: '40px' }}>{intro}</div>
         {stack(true)}
+        {cta(true)}
       </section>
     )
   }
@@ -198,6 +223,7 @@ export default function Pursuits() {
           <div style={{ marginBottom: 'clamp(20px, 3.5vh, 36px)' }}>{heading}</div>
           <div style={{ marginBottom: 'clamp(20px, 3.5vh, 36px)' }}>{intro}</div>
           {stack(false)}
+          {cta(ctaHot)}
         </div>
       </motion.div>
     </section>

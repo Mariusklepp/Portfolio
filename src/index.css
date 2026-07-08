@@ -363,21 +363,25 @@ a:focus-visible {
   .chapter-rail { display: none; }
 }
 
-/* "Get to know me" word wall — the pursuits as one flowing line of big
-   condensed words (see src/components/Pursuits.tsx). The live word takes the
-   accent while the rest stay dim; hover brightens a candidate. */
+/* "Get to know me" word stack (src/components/Pursuits.tsx). Scroll alone
+   drives the live word — the words are plain text, not controls: no hover,
+   no cursor. The live word takes the accent while the rest stay dim. */
 .pursuit-word {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font: inherit;
   color: var(--text);
   opacity: 0.32;
   transition: color 0.35s ease, opacity 0.35s ease;
 }
-.pursuit-word:hover { opacity: 0.75; }
 .pursuit-word[data-active='true'] {
   color: var(--accent);
   opacity: 1;
+}
+/* The CTA under the stack: a typographic line that gains a traced outline at
+   the end of the scrub (SVG in the component); label answers hover/active. */
+.pursuit-cta .pursuit-cta-label {
+  transition: color 0.3s ease;
+}
+.pursuit-cta:hover .pursuit-cta-label,
+.pursuit-cta:focus-visible .pursuit-cta-label,
+.pursuit-cta[data-active='true'] .pursuit-cta-label {
+  color: var(--accent);
 }

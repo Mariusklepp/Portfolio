@@ -74,16 +74,18 @@ Editorial scroll in `src/pages/Home.tsx`; stages tracked by the chapter rail:
    `src/data/home.ts`, rendered by `src/components/Pursuits.tsx`): the pursuits
    as a left-aligned vertical stack of big condensed words (TRAINING / SLALOM &
    SNOWBOARD / GOLF — golf is new, recently picked up), no bullets or dots. This
-   is the landing's second pinned moment: **scroll drives the live word** — the
-   pin always enters on the first word (deterministic, no timer) and steps down
-   the stack as you scroll; hover overrides while the pointer stays. The live
-   word takes the accent while the rest stay dim, and its detail (short accent
-   rule + plain sentence, no em-dash "AI voice", + small mono fact) unfolds
-   accordion-style BETWEEN it and the next word.
+   is the landing's second pinned moment: **scroll alone drives the live
+   word** — the pin always enters on the first word (deterministic; no timer,
+   no hover — the words are plain text, not controls). The live word takes the
+   accent while the rest stay dim, and its detail (short accent rule + plain
+   sentence, no em-dash "AI voice", + small mono fact) unfolds accordion-style
+   BETWEEN it and the next word.
    Deliberately a glimpse, not a photo section — imagery/depth belong to the
-   About page, and the stack scales if more pursuits are added. The stack's
-   last line is a big "More about me →" link that ignites as the scrub's exit
-   beat → About. Deliberately NOT included: concerts/live
+   About page, and the stack scales if more pursuits are added. Under the
+   stack sits "More about me →" as a quiet typographic line; at the scrub's
+   exit beat an accent outline TRACES itself around it (SVG stroke draw),
+   turning it into an unmistakable button → About. Deliberately NOT included:
+   concerts/live
    music (the old "25+ concerts" stat was untrue), Blender, and investing —
    Marius trimmed the list to what he actually rates. Running facts: the
    **Copenhagen Marathon (May 2027) is a decided race**; an **Ironman
