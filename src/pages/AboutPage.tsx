@@ -3,6 +3,18 @@ import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { Reveal, Label, PageHeading, SectionHeading } from '../components/shared'
 import { Parallax } from '../components/motion'
+import { GradeOverlay, MediaFrame, GRAIN_URL } from '../components/media'
+import { pursuits } from '../data/pursuits'
+import { reading } from '../data/reading'
+import Button from '../components/Button'
+
+/**
+ * The About page is "the long version": the landing's Get to know me section
+ * is the teaser, this is where people actually get to know Marius. The three
+ * pursuits are chapters that open into their own deep pages (/about/:slug);
+ * concerts and investing stay as plain chapters. All copy follows the voice
+ * rule in CLAUDE.md — written like Marius wrote it himself, and only true.
+ */
 
 interface Interest {
   title: string
@@ -10,47 +22,43 @@ interface Interest {
   icon: string
   media?: string[]
   badge?: string
+  /** Links the chapter to its deep page at /about/:slug. */
+  slug?: string
 }
 
-const isVideo = (src: string) => /\.(mp4|webm|mov|m4v)$/i.test(src)
-
+// The three pursuits come from the shared data file (same source as the
+// landing word stack); concerts and investing live only here on the long
+// version. Concerts: Marius is undecided about keeping it — the copy is
+// toned down to what's true, and it's one delete away if he drops it.
 const interests: Interest[] = [
-  {
-    title: 'The long game',
-    description: "I ran the Trondheim Marathon, and the Copenhagen Marathon in May 2027 is next. Long efforts are where discipline gets honest: no shortcuts, just the work you put in for months before the start line. I'm also considering an Ironman in 2027, but that decision is still open.",
-    icon: 'lucide:footprints',
-    media: ['/images/running.jpg'],
-    badge: 'Next: Copenhagen Marathon · May 2027',
-  },
-  {
-    title: 'Strength training',
-    description: 'A few hours a week in the gym. The discipline of progressive overload — small consistent wins adding up — is something that has stuck with me.',
-    icon: 'lucide:dumbbell',
-    media: ['/images/strength.jpg'],
-  },
-  {
-    title: 'Skiing & snowboarding',
-    description: 'Slalom and snowboarding through the winter — the trade-off between speed and control on a mountain is something I never tire of.',
-    icon: 'mdi:ski',
-    media: ['/images/skiing.jpg', '/videos/snowboard.mp4'],
-  },
-  {
-    title: 'Golf',
-    description: "The newest one. I started playing recently and I'm still learning the game.",
-    icon: 'mdi:golf',
-    badge: 'Just started',
-  },
+  ...pursuits.map((p) => ({
+    title: p.name,
+    description: p.about,
+    icon: p.icon,
+    media: p.media,
+    badge: p.badge,
+    slug: p.slug,
+  })),
   {
     title: 'Live concerts',
-    description: 'There\'s nothing quite like the energy of a room when an artist lands on a great song. I try to catch shows whenever I can.',
+    description: "Not something I chase every month, but a good show with the right artist is hard to beat.",
     icon: 'lucide:disc-3',
     media: ['/images/concert.jpg', '/images/concert-2.jpg'],
   },
   {
     title: 'Investing & finance',
-    description: 'I follow markets and read about value investing — thinking about how capital flows shape the world is endlessly interesting.',
+    description: 'I follow the markets and read about value investing. How capital moves around the world is a rabbit hole I keep coming back to.',
     icon: 'lucide:trending-up',
   },
+]
+
+// Status, not a project list — the builds themselves live in Home "Currently"
+// and the Projects page.
+const currently = [
+  'Studying software development at NTNU, Trondheim',
+  'Building JARVIS and Deep Core',
+  'Teaching myself Blender',
+  'Open to freelance work',
 ]
 
 interface EducationItem {
@@ -72,63 +80,17 @@ const education: EducationItem[] = [
   },
 ]
 
-interface FlipItem {
-  label: string
-  sub: string
-  icon: string
-  color: string
-  bg: string
-}
-
-// Status / context only — NOT a project list. The actual builds (JARVIS,
-// Deep Core, Millions) are owned by Home "Currently" + the Projects page, so
-// they don't get re-listed here. This card is "what phase of life I'm in".
-const flipItems: FlipItem[] = [
-  { label: 'Studying at NTNU',     sub: 'Software Development, Trondheim', icon: 'lucide:graduation-cap', color: 'var(--accent)', bg: 'var(--accent-dim)' },
-  { label: 'Training',             sub: 'Gym, running, and recently golf', icon: 'lucide:activity',       color: 'var(--warm)',   bg: 'var(--accent-dim)' },
-  { label: 'Learning Blender',     sub: '3D modelling & game assets',      icon: 'logos:blender',         color: 'var(--amber)',  bg: 'var(--amber-dim)' },
-  { label: 'Open to Freelance',    sub: 'Available for collaboration',     icon: 'lucide:briefcase',      color: 'var(--warm)',   bg: 'var(--accent-dim)' },
+const skills = [
+  { name: 'Java',        icon: 'devicon:java' },
+  { name: 'JavaScript',  icon: 'devicon:javascript' },
+  { name: 'HTML',        icon: 'devicon:html5' },
+  { name: 'CSS',         icon: 'devicon:css3' },
+  { name: 'React',       icon: 'devicon:react' },
+  { name: 'Tailwind',    icon: 'devicon:tailwindcss' },
+  { name: 'Git',         icon: 'devicon:git' },
+  { name: 'GitHub',      icon: 'mdi:github' },
+  { name: 'SQL',         icon: 'devicon:mysql' },
 ]
-
-const GRAIN_URL =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
-
-/** Cohesive filmic finish over a photo/video: faint red wash + bottom sink + grain. */
-function GradeOverlay() {
-  return (
-    <>
-      <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'var(--accent)', mixBlendMode: 'color', opacity: 0.1, pointerEvents: 'none' }} />
-      <div aria-hidden style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(10,10,11,0.5), transparent 45%)', pointerEvents: 'none' }} />
-      <div aria-hidden style={{ position: 'absolute', inset: 0, opacity: 0.08, mixBlendMode: 'overlay', backgroundImage: GRAIN_URL, backgroundSize: '140px 140px', pointerEvents: 'none' }} />
-    </>
-  )
-}
-
-function MediaFrame({ src, alt }: Readonly<{ src: string; alt: string }>) {
-  const baseStyle: React.CSSProperties = {
-    width: '100%',
-    height: '100%',
-    objectFit: 'cover',
-    display: 'block',
-  }
-
-  if (isVideo(src)) {
-    return (
-      <video
-        key={src}
-        src={src}
-        autoPlay
-        muted
-        loop
-        playsInline
-        aria-label={alt}
-        style={baseStyle}
-      />
-    )
-  }
-
-  return <img key={src} src={src} alt={alt} style={baseStyle} />
-}
 
 function MediaCarousel({ media, alt }: Readonly<{ media: string[]; alt: string }>) {
   const [index, setIndex] = useState(0)
@@ -288,13 +250,14 @@ function InterestEntry({ item, index }: Readonly<{ item: Interest; index: number
             №&nbsp;{String(index + 1).padStart(2, '0')}
           </span>
           <h3
-            className="font-display"
+            className="font-condensed"
             style={{
-              fontWeight: 700,
-              fontSize: 'clamp(1.7rem, 3.5vw, 2.4rem)',
+              fontWeight: 800,
+              fontSize: 'clamp(1.7rem, 3.5vw, 2.6rem)',
+              textTransform: 'uppercase',
               color: 'var(--text)',
-              letterSpacing: '-0.02em',
-              lineHeight: 1.1,
+              letterSpacing: '0.01em',
+              lineHeight: 0.95,
             }}
           >
             {item.title}
@@ -322,185 +285,43 @@ function InterestEntry({ item, index }: Readonly<{ item: Interest; index: number
           <p style={{ color: 'var(--muted)', fontSize: '16px', lineHeight: 1.8 }}>
             {item.description}
           </p>
+          {item.slug && (
+            <Link
+              to={`/about/${item.slug}`}
+              className="font-condensed cursor-pointer"
+              style={{
+                alignSelf: 'flex-start',
+                marginTop: '6px',
+                fontSize: '1.15rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.03em',
+                color: 'var(--accent)',
+                textDecoration: 'none',
+              }}
+            >
+              See more →
+            </Link>
+          )}
         </div>
       </article>
     </Reveal>
   )
 }
 
-function FlipFace({ item, flipped }: { item: FlipItem; flipped?: boolean }) {
+function BookRow({ title, author, note }: Readonly<{ title: string; author: string; note?: string }>) {
   return (
-    <div
-      style={{
-        position: 'absolute',
-        inset: 0,
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden',
-        transform: flipped ? 'rotateY(180deg)' : 'rotateY(0)',
-        background: item.bg,
-        border: `1.5px solid ${item.color}`,
-        borderRadius: '16px',
-        padding: '28px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'space-between',
-        textAlign: 'left',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div
-          style={{
-            width: '44px',
-            height: '44px',
-            borderRadius: '10px',
-            background: 'var(--surface)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: `1px solid ${item.color}`,
-          }}
-        >
-          <Icon icon={item.icon} width={22} height={22} color={item.color} />
-        </div>
-        <span
-          className="font-mono-label"
-          style={{
-            fontSize: '10px',
-            color: item.color,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-          }}
-        >
-          currently
+    <div style={{ padding: '14px 4px', borderTop: '1px solid var(--border)' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', flexWrap: 'wrap', gap: '6px 14px' }}>
+        <span style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text)' }}>{title}</span>
+        <span className="font-mono-label" style={{ fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.08em' }}>
+          {author}
         </span>
       </div>
-      <div>
-        <h3
-          style={{
-            fontFamily: "'Bricolage Grotesque', sans-serif",
-            fontWeight: 700,
-            fontSize: '22px',
-            color: 'var(--text)',
-            letterSpacing: '-0.01em',
-            marginBottom: '6px',
-          }}
-        >
-          {item.label}
-        </h3>
-        <p style={{ color: 'var(--muted)', fontSize: '14px', lineHeight: 1.5 }}>{item.sub}</p>
-      </div>
+      {note && <p style={{ marginTop: '6px', fontSize: '13px', lineHeight: 1.6, color: 'var(--muted)' }}>{note}</p>}
     </div>
   )
 }
-
-function FlipCard() {
-  const [rotation, setRotation] = useState(0)
-  const [front, setFront] = useState<FlipItem>(flipItems[0])
-  const [back, setBack] = useState<FlipItem>(flipItems[1])
-  const [currentIdx, setCurrentIdx] = useState(0)
-  const [flipping, setFlipping] = useState(false)
-
-  const navigate = (direction: 1 | -1) => {
-    if (flipping) return
-    setFlipping(true)
-    const newIdx = (currentIdx + direction + flipItems.length) % flipItems.length
-    const newRot = rotation + 180 * direction
-    setRotation(newRot)
-    setTimeout(() => {
-      const item = flipItems[newIdx]
-      if (((newRot % 360) + 360) % 360 === 0) {
-        setBack(item)
-      } else {
-        setFront(item)
-      }
-      setCurrentIdx(newIdx)
-      setFlipping(false)
-    }, 700)
-  }
-
-  const arrowStyle: React.CSSProperties = {
-    width: '32px',
-    height: '32px',
-    borderRadius: '0',
-    border: 'none',
-    background: 'transparent',
-    color: 'var(--muted)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'color 0.2s, transform 0.2s',
-    flexShrink: 0,
-    padding: 0,
-  }
-
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', maxWidth: '460px' }}>
-      <button
-        onClick={() => navigate(-1)}
-        aria-label="Previous"
-        className="cursor-pointer"
-        style={arrowStyle}
-        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted)')}
-      >
-        <Icon icon="lucide:chevron-left" width={22} height={22} strokeWidth={1.5} />
-      </button>
-
-      <div style={{ perspective: '1400px', flex: 1 }}>
-        <div
-          style={{
-            width: '100%',
-            aspectRatio: '8 / 5',
-            position: 'relative',
-            transformStyle: 'preserve-3d',
-            transition: 'transform 0.7s cubic-bezier(0.4, 0.05, 0.2, 1)',
-            transform: `rotateY(${rotation}deg)`,
-          }}
-        >
-          <FlipFace item={front} />
-          <FlipFace item={back} flipped />
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '14px' }}>
-          {flipItems.map((_, i) => (
-            <span
-              key={i}
-              style={{
-                width: i === currentIdx ? '20px' : '6px',
-                height: '6px',
-                borderRadius: '999px',
-                background: i === currentIdx ? 'var(--accent)' : 'var(--border)',
-                transition: 'width 0.3s, background 0.3s',
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
-      <button
-        onClick={() => navigate(1)}
-        aria-label="Next"
-        className="cursor-pointer"
-        style={arrowStyle}
-        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--accent)')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted)')}
-      >
-        <Icon icon="lucide:chevron-right" width={22} height={22} strokeWidth={1.5} />
-      </button>
-    </div>
-  )
-}
-
-const skills = [
-  { name: 'Java',        icon: 'devicon:java' },
-  { name: 'JavaScript',  icon: 'devicon:javascript' },
-  { name: 'HTML',        icon: 'devicon:html5' },
-  { name: 'CSS',         icon: 'devicon:css3' },
-  { name: 'React',       icon: 'devicon:react' },
-  { name: 'Tailwind',    icon: 'devicon:tailwindcss' },
-  { name: 'Git',         icon: 'devicon:git' },
-  { name: 'GitHub',      icon: 'mdi:github' },
-  { name: 'SQL',         icon: 'devicon:mysql' },
-]
 
 function SkillCard({ skill, delay }: { skill: { name: string; icon: string }; delay: number }) {
   const [hovered, setHovered] = useState(false)
@@ -529,10 +350,12 @@ function SkillCard({ skill, delay }: { skill: { name: string; icon: string }; de
 }
 
 function AboutPage() {
+  const hasReading = reading.current !== null || reading.read.length > 0 || reading.planned.length > 0
+
   return (
     <div style={{ minHeight: '100vh', padding: '128px 24px 96px' }}>
       <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
-        {/* Beat 1 — opening: identity + stance + a graded portrait */}
+        {/* Opening — the long version of the landing's short version */}
         <div
           style={{
             display: 'grid',
@@ -544,15 +367,17 @@ function AboutPage() {
         >
           <Reveal>
             <Label n="01" text="about" />
-            <PageHeading>I don't do anything halfway.</PageHeading>
+            <PageHeading>The long version.</PageHeading>
             <p style={{ color: 'var(--muted)', maxWidth: '520px', lineHeight: 1.8, fontSize: '16px' }}>
-              I'm Marius — a software development student at NTNU Trondheim who treats code like
-              training: reps, discipline, no shortcuts. I build things to finish them.
+              I'm Marius, a software development student at NTNU in Trondheim. I treat code a bit
+              like training: show up, do the reps, finish what you start. This page is the rest of
+              the picture.
             </p>
           </Reveal>
 
           <Reveal delay={120}>
             <Parallax amount={26}>
+              {/* portrait placeholder — Marius is taking a new photo for this spot */}
               <div
                 style={{
                   position: 'relative',
@@ -585,8 +410,7 @@ function AboutPage() {
                     inset: 0,
                     opacity: 0.1,
                     mixBlendMode: 'overlay',
-                    backgroundImage:
-                      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+                    backgroundImage: GRAIN_URL,
                     backgroundSize: '140px 140px',
                   }}
                 />
@@ -595,21 +419,22 @@ function AboutPage() {
           </Reveal>
         </div>
 
-        {/* Beat 2 — the story / ethos */}
+        {/* The story */}
         <Reveal>
           <div style={{ maxWidth: '680px', marginBottom: '40px' }}>
             <Label n="02" text="the story" />
             <div style={{ color: 'var(--muted)', lineHeight: 1.85, fontSize: '16px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <p>
-                I like building things that are clean, useful, and{' '}
-                <span style={{ color: 'var(--text)' }}>finished</span> — not ninety percent done and
+                I like building things that are clean, useful and{' '}
+                <span style={{ color: 'var(--text)' }}>finished</span>. Not ninety percent done and
                 left in a folder somewhere.
               </p>
               <p>
-                The way I work comes from the way I train. Progressive overload, small consistent wins,
-                showing up when it's boring — the Trondheim Marathon taught me that.
+                The way I work comes from the way I train. Small wins that stack up, and showing up
+                on the days it's boring. Running the Trondheim Marathon taught me more about that
+                than any course has.
               </p>
-              <p>A Java system, a web interface, or a long run in the rain — the rule doesn't change.</p>
+              <p>A Java system, a web interface or a long run in the rain. The rule is the same.</p>
             </div>
           </div>
         </Reveal>
@@ -631,16 +456,128 @@ function AboutPage() {
           </p>
         </Reveal>
 
-        {/* Currently — status (flip card; folds into the builder beat later) */}
+        {/* Right now — plain status rows (replaces the old flip card) */}
         <Reveal>
-          <div style={{ maxWidth: '460px', margin: '0 auto', marginBottom: '96px' }}>
-            <FlipCard />
-          </div>
+          <Label n="03" text="right now" />
+          <SectionHeading>Currently</SectionHeading>
         </Reveal>
+        <div style={{ marginBottom: '96px', borderBottom: '1px solid var(--border)' }}>
+          {currently.map((item, i) => (
+            <Reveal key={item} delay={i * 60}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: '24px',
+                  padding: '16px 4px',
+                  borderTop: '1px solid var(--border)',
+                }}
+              >
+                <span className="font-mono-label" style={{ fontSize: '11px', color: 'var(--accent)', letterSpacing: '0.1em' }}>
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <span style={{ fontSize: '15px', color: 'var(--text)' }}>{item}</span>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* In my free time — the chapters; the three pursuits open into their
+            own deep pages */}
+        <Reveal>
+          <Label n="04" text="free time" />
+          <SectionHeading>In my free time</SectionHeading>
+          <p style={{ color: 'var(--muted)', maxWidth: '560px', lineHeight: 1.7, marginTop: '-32px', marginBottom: '64px', fontSize: '15px' }}>
+            The stuff that fills the hours around the code. The first three have their own pages
+            with more detail.
+          </p>
+        </Reveal>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '88px', marginBottom: '96px' }}>
+          {interests.map((item, i) => (
+            <InterestEntry key={item.title} item={item} index={i} />
+          ))}
+        </div>
+
+        {/* Reading — hidden until src/data/reading.ts has real titles */}
+        {hasReading && (
+          <>
+            <Reveal>
+              <Label n="05" text="reading" />
+              <SectionHeading>On the bookshelf</SectionHeading>
+            </Reveal>
+            <div style={{ marginBottom: '96px', display: 'flex', flexDirection: 'column', gap: '48px' }}>
+              {reading.current && (
+                <Reveal>
+                  <div
+                    style={{
+                      border: '1px solid var(--border)',
+                      borderRadius: '14px',
+                      padding: '28px',
+                      maxWidth: '560px',
+                    }}
+                  >
+                    <span
+                      className="font-mono-label"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '11px',
+                        color: 'var(--accent)',
+                        letterSpacing: '0.18em',
+                        textTransform: 'uppercase',
+                        marginBottom: '14px',
+                      }}
+                    >
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor', animation: 'pulse 2s infinite' }} />
+                      Reading now
+                    </span>
+                    <h3 className="font-display" style={{ fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', color: 'var(--text)', lineHeight: 1.2 }}>
+                      {reading.current.title}
+                    </h3>
+                    <p className="font-mono-label" style={{ marginTop: '8px', fontSize: '12px', color: 'var(--muted)', letterSpacing: '0.08em' }}>
+                      {reading.current.author}
+                    </p>
+                    {reading.current.note && (
+                      <p style={{ marginTop: '14px', fontSize: '14px', lineHeight: 1.7, color: 'var(--muted)' }}>{reading.current.note}</p>
+                    )}
+                  </div>
+                </Reveal>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '48px' }}>
+                {reading.read.length > 0 && (
+                  <Reveal>
+                    <span className="font-mono-label" style={{ display: 'block', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                      Read
+                    </span>
+                    <div style={{ borderBottom: '1px solid var(--border)' }}>
+                      {reading.read.map((book) => (
+                        <BookRow key={book.title} {...book} />
+                      ))}
+                    </div>
+                  </Reveal>
+                )}
+                {reading.planned.length > 0 && (
+                  <Reveal delay={60}>
+                    <span className="font-mono-label" style={{ display: 'block', fontSize: '11px', color: 'var(--muted)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                      Up next
+                    </span>
+                    <div style={{ borderBottom: '1px solid var(--border)' }}>
+                      {reading.planned.map((book) => (
+                        <BookRow key={book.title} {...book} />
+                      ))}
+                    </div>
+                  </Reveal>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Education */}
         <Reveal>
-          <Label n="02" text="education" />
+          <Label n={hasReading ? '06' : '05'} text="education" />
           <SectionHeading>Education</SectionHeading>
         </Reveal>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '96px' }}>
@@ -754,77 +691,49 @@ function AboutPage() {
           ))}
         </div>
 
-        {/* Tech Stack */}
+        {/* Tech stack */}
         <Reveal>
-          <Label n="03" text="tech stack" />
+          <Label n={hasReading ? '07' : '06'} text="tech stack" />
           <SectionHeading>Skills</SectionHeading>
         </Reveal>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px', marginBottom: '96px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px', marginBottom: '120px' }}>
           {skills.map((skill, i) => (
             <SkillCard key={skill.name} skill={skill} delay={i * 55} />
           ))}
         </div>
 
-        {/* In my free time */}
+        {/* CTA — same language as the landing's contact section */}
         <Reveal>
-          <Label n="04" text="free time" />
-          <SectionHeading>In my free time</SectionHeading>
-          <p style={{ color: 'var(--muted)', maxWidth: '560px', lineHeight: 1.7, marginTop: '-32px', marginBottom: '64px', fontSize: '15px' }}>
-            A bit about who I am outside of studies and code.
-          </p>
-        </Reveal>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '88px', marginBottom: '96px' }}>
-          {interests.map((item, i) => (
-            <InterestEntry key={item.title} item={item} index={i} />
-          ))}
-        </div>
-
-        {/* CTA */}
-        <Reveal>
-          <div
-            style={{
-              padding: '32px',
-              borderRadius: '14px',
-              border: '1px solid var(--border)',
-              background: 'var(--surface)',
-              textAlign: 'center',
-            }}
-          >
-            <h3
+          <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
+            <span
+              className="font-mono-label"
+              style={{ fontSize: '12px', color: 'var(--accent)', letterSpacing: '0.22em', textTransform: 'uppercase' }}
+            >
+              Let's connect
+            </span>
+            <h2
+              className="font-condensed"
               style={{
-                fontFamily: "'Bricolage Grotesque', sans-serif",
-                fontWeight: 700,
-                fontSize: '1.4rem',
+                fontSize: 'clamp(2.4rem, 7vw, 4.6rem)',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                lineHeight: 0.9,
                 color: 'var(--text)',
-                marginBottom: '8px',
-                letterSpacing: '-0.01em',
+                margin: '18px 0 36px',
               }}
             >
-              Want to work together?
-            </h3>
-            <p style={{ color: 'var(--muted)', marginBottom: '20px', fontSize: '14px' }}>
-              I'm open to freelance projects and collaboration.
-            </p>
-            <Link
-              to="/contact"
-              className="cursor-pointer"
-              style={{
-                display: 'inline-block',
-                background: 'var(--accent)',
-                color: '#fff',
-                padding: '12px 24px',
-                borderRadius: '10px',
-                fontSize: '14px',
-                fontWeight: 600,
-                textDecoration: 'none',
-                transition: 'opacity 0.2s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.85')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            >
-              Get in touch
-            </Link>
+              Want to work
+              <br />
+              together?
+            </h2>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Button to="/contact" variant="primary">
+                Get in touch
+              </Button>
+              <Button to="/projects" variant="secondary">
+                See my work
+              </Button>
+            </div>
           </div>
         </Reveal>
       </div>

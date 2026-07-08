@@ -42,36 +42,9 @@ export const socialLinks: SocialLink[] = [
   { href: '/cv.pdf',                                                icon: 'lucide:download',    label: 'CV',        hover: 'Download CV', download: true },
 ]
 
-/**
- * "Get to know me" — what the free time actually goes to. Rendered by
- * `src/components/Pursuits.tsx` as a stack of big condensed words: the pursuit
- * itself is the hero, `line` is one plain human sentence (only claims that are
- * true about Marius), and `fact` is a small mono detail under it.
- * Person stuff only — no code stats; those belong in Work / project pages.
- */
-export interface Pursuit {
-  name: string
-  line: string
-  fact?: string
-}
-
-export const pursuits: Pursuit[] = [
-  {
-    name: 'Training',
-    line: "Mostly gym and running. I've run the Trondheim Marathon, and next up is the Copenhagen Marathon in May 2027. I'm also thinking about an Ironman.",
-    fact: 'Trondheim done · Copenhagen May 2027',
-  },
-  {
-    name: 'Slalom & snowboard',
-    line: 'As many days on the mountain as I can get.',
-    fact: 'Every winter',
-  },
-  {
-    name: 'Golf',
-    line: "The newest one. I recently started playing and I'm still learning the game.",
-    fact: 'Just started',
-  },
-]
+// The free-time pursuits moved to `src/data/pursuits.ts` — one source of
+// truth shared by the landing word stack, the About hub, and the pursuit
+// detail pages.
 
 export interface WorkingOnItem {
   /** Matches the project id in projects.ts, so the ticker can link to its page. */

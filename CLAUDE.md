@@ -96,7 +96,24 @@ Editorial scroll in `src/pages/Home.tsx`; stages tracked by the chapter rail:
 
 Deep pages (project detail + expanded About) and the standalone Contact route are kept.
 
-## Inner pages (About / Projects / Project detail / Contact)
+## About = "the long version"
+The About page's job: visitors leave feeling they actually know Marius. It's a
+**hub** (`src/pages/AboutPage.tsx`) — opening ("The long version." headline),
+story, a plain "Currently" row list (the old flip card is gone), the free-time
+chapters, a Reading/bookshelf section, education, skills, CTA. The three
+pursuits (Training / Slalom & snowboard / Golf) are chapters that **open into
+their own deep pages** at `/about/:slug` (`src/pages/PursuitPage.tsx`) — the
+same pattern as project detail pages: golf will hold handicap + how the rounds
+are going, training will hold PRs and races, slalom/snowboard the Åre-trip
+photos. All of it reads from **one data file, `src/data/pursuits.ts`** (front
+word stack + hub + detail pages share it); the bookshelf reads
+`src/data/reading.ts`. Stats/logs/books are optional fields — sections render
+ONLY when real data exists (truth rule), so empty is always safe. Marius fills
+in numbers/photos over time. Live concerts + investing stay as hub-only
+chapters (concerts: Marius is undecided — copy toned down, easy to remove).
+Shared media grade lives in `src/components/media.tsx`.
+
+## Inner pages (Projects / Project detail / Contact)
 Still being brought in line with the homepage's editorial language. Shared primitives
 live in `src/components/shared.tsx` (`PageHeading` / `SectionHeading` now render as
 condensed caps). The dark base is unified via `--bg` = `#08080A`.
@@ -107,4 +124,8 @@ condensed caps). The dark base is unified via `--bg` = `#08080A`.
 - **Copy about Marius must be true.** Never invent stats or biography (a
   "25+ concerts" stat shipped before being caught as untrue). When a fact is
   needed and unknown, ask — or leave it out.
+- **Write in Marius's own voice.** All copy must read like he wrote it himself:
+  a real person, not AI. Natural rhythm and flow, plain everyday words, varied
+  sentence length. No robotic phrasing, no repetitive sentence patterns, no
+  overly formal words, no em-dash tics.
 - `cv.pdf` lives in `public/` and is linked by the Download-CV buttons.

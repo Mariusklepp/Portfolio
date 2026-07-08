@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import SmoothScroll from './components/SmoothScroll'
 import Home from './pages/Home'
 import AboutPage from './pages/AboutPage'
+import PursuitPage from './pages/PursuitPage'
 import ProjectsPage from './pages/ProjectsPage'
 import ProjectPage from './pages/ProjectPage'
 import ContactPage from './pages/ContactPage'
@@ -23,6 +24,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/about/:slug" element={<PursuitPage />} />
         <Route path="/projects" element={<ProjectsPage />} />
         <Route path="/projects/:id" element={<ProjectPage />} />
         <Route path="/contact" element={<ContactPage />} />

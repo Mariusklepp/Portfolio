@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { pursuits } from '../data/home'
+import { pursuits } from '../data/pursuits'
 
 /** Extra scroll distance the pin lasts — the "dwell" that drives the words. */
 const TRACK_PX = 2400
