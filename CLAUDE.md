@@ -98,14 +98,31 @@ Deep pages (project detail + expanded About) and the standalone Contact route ar
 
 ## About = "the long version"
 The About page's job: visitors leave feeling they actually know Marius. It's a
-**hub** (`src/pages/AboutPage.tsx`) — opening ("Hi, I'm Marius." — they should
-feel greeted by an intro of who he is), story, a plain "Currently" row list
-(the old flip card is gone), the free-time chapters, a Reading/bookshelf
-section, education, skills, CTA. The page uses the landing's scroll
-choreography (ghost parallax numbers behind headings, SlideIn from the sides,
-parallax drift on chapter images) — it must never read like a static Word
-document. Photos carry NO color tint — the old red/pink wash was removed;
-grade is just bottom-sink + grain (`src/components/media.tsx`). The three
+**hub** (`src/pages/AboutPage.tsx`) shot as **one continuous camera move**
+(planned with Marius July 2026 — it must never read like a static Word doc):
+1. **Hello** — "Hi, I'm Marius." word-rise, portrait, and the Currently
+   status lines typed out terminal-style (Currently is folded in here, no
+   separate section; the old flip card and the "How I work" story section
+   are gone).
+2. **→ zoom-through**: a pinned two-layer sequence — Hello scales INTO the
+   camera and blurs out (the portrait "steps aside" a beat earlier) while…
+3. **Background** (education + skills merged, one compact scene) rises from
+   beneath, small → settled. Falls back to flat sections under 900px width
+   and reduced motion.
+4. **Free time — THE DECK**: each pursuit chapter is a big opaque card
+   (`.deck-card`) that sticks near the top while the next climbs up and
+   covers it; buried cards sink and dim. Media auto-crossfades inside the
+   cards (no arrows) with scroll-linked inner zoom. Deliberately NOT another
+   horizontal gallery — that's the landing's move.
+5. **Reading** (hidden until `src/data/reading.ts` has titles; enters from
+   the right).
+6. **Contact — focus pull**: starts oversized + blurred ("too close to the
+   lens") and settles sharp on arrival.
+A gentle **velocity skew** shears content with scroll speed throughout
+(applied per scene, never around a sticky ancestor). No "red thread" line —
+Marius rejected it (that lives in Projects). Photos carry NO color tint —
+the old red/pink wash was removed; grade is just bottom-sink + grain
+(`src/components/media.tsx`). The three
 pursuits (Training / Slalom & snowboard / Golf) are chapters that **open into
 their own deep pages** at `/about/:slug` (`src/pages/PursuitPage.tsx`) — the
 same pattern as project detail pages: golf will hold handicap + how the rounds

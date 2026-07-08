@@ -16,7 +16,9 @@ export function ZoomFrame({ children, style }: Readonly<{ children: React.ReactN
   const scale = useTransform(scrollYProgress, [0, 1], [1.14, 1])
   return (
     <div ref={ref} style={{ overflow: 'hidden', width: '100%', height: '100%', ...style }}>
-      <motion.div style={{ width: '100%', height: '100%', scale: reduce ? 1 : scale }}>{children}</motion.div>
+      <motion.div style={{ position: 'relative', width: '100%', height: '100%', scale: reduce ? 1 : scale }}>
+        {children}
+      </motion.div>
     </div>
   )
 }
