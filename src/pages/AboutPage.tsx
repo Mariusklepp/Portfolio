@@ -341,7 +341,7 @@ function HelloText() {
     <div>
       <Label n="01" text="about" />
       <PageHeading>
-        <WordRise text="Hi, I'm Marius." />
+        <WordRise text="Hi, I'm Marius" />
       </PageHeading>
       <SlideIn from="up" delay={0.4}>
         <p style={{ color: 'var(--muted)', maxWidth: '520px', lineHeight: 1.8, fontSize: '16px', marginBottom: '28px' }}>
