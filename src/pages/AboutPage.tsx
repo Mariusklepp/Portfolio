@@ -1,6 +1,6 @@
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router-dom'
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import {
   motion,
   useInView,
@@ -10,6 +10,7 @@ import {
   useSpring,
   useTransform,
   useVelocity,
+  type MotionValue,
 } from 'motion/react'
 import { Label, PageHeading } from '../components/shared'
 import { Parallax, SlideIn } from '../components/motion'
@@ -203,16 +204,20 @@ function WordRise({ text }: Readonly<{ text: string }>) {
   return (
     <motion.span initial={reduce ? false : 'hidden'} whileInView="visible" viewport={{ once: true }}>
       {words.map((word, i) => (
-        <span key={word + i} style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom' }}>
-          <motion.span
-            style={{ display: 'inline-block' }}
-            variants={{ hidden: { y: '110%' }, visible: { y: 0 } }}
-            transition={{ duration: 0.65, delay: 0.1 + i * 0.09, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {word}
-            {i < words.length - 1 ? ' ' : ''}
-          </motion.span>
-        </span>
+        <Fragment key={word + i}>
+          {/* the space lives BETWEEN the masks — a trailing space inside an
+              inline-block gets collapsed away by CSS */}
+          {i > 0 && ' '}
+          <span style={{ display: 'inline-block', overflow: 'hidden', verticalAlign: 'bottom' }}>
+            <motion.span
+              style={{ display: 'inline-block' }}
+              variants={{ hidden: { y: '110%' }, visible: { y: 0 } }}
+              transition={{ duration: 0.65, delay: 0.1 + i * 0.09, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {word}
+            </motion.span>
+          </span>
+        </Fragment>
       ))}
     </motion.span>
   )
@@ -482,7 +487,24 @@ function SkillCard({ skill, delay }: { skill: { name: string; icon: string }; de
 /* 01+02 — the pinned zoom-through sequence                            */
 /* ------------------------------------------------------------------ */
 
-const HB_TRACK = 1500
+/** Scroll budget of the pinned Hello → Background stage, in px. The two holds
+ *  are where the page stands still so each scene gets read; the zoom is the
+ *  transition between them. Tune these to change how long each part lasts. */
+const HELLO_HOLD = 750
+const HB_ZOOM = 1100
+const BG_HOLD = 750
+const HB_TRACK = HELLO_HOLD + HB_ZOOM + BG_HOLD
+
+/** Maps a point inside the zoom (0 = Hello hold ends, 1 = Background hold
+ *  starts) to the section's overall scroll progress. */
+const zoomAt = (t: number) => (HELLO_HOLD + t * HB_ZOOM) / HB_TRACK
+
+/** Input stops for a fade that spans the whole 0–1 track (pair with outputs
+ *  like [1, 1, 0, 0]). Motion runs opacity on the browser's native scroll
+ *  timeline, and a range that stops short of 0 or 1 lets the browser ease
+ *  back to the resting style at the ends: the faded-out greeting would
+ *  creep back in behind Background. */
+const fadeStops = (from: number, to: number) => [0, from, to, 1]
 
 /** Hello and Background share one pinned stage: as you scroll, the greeting
  *  scales INTO the camera and blurs away (you travel through it, not past
@@ -493,20 +515,20 @@ function HelloBackgroundPinned() {
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] })
 
   // Hello travels into the lens…
-  const helloScale = useTransform(scrollYProgress, [0.3, 0.58], [1, 1.18])
-  const helloBlurV = useTransform(scrollYProgress, [0.3, 0.58], [0, 9])
+  const helloScale = useTransform(scrollYProgress, [zoomAt(0.14), zoomAt(0.64)], [1, 1.18])
+  const helloBlurV = useTransform(scrollYProgress, [zoomAt(0.14), zoomAt(0.64)], [0, 9])
   const helloBlur = useTransform(helloBlurV, (b) => `blur(${b}px)`)
-  const helloOpacity = useTransform(scrollYProgress, [0.34, 0.58], [1, 0])
+  const helloOpacity = useTransform(scrollYProgress, fadeStops(zoomAt(0.21), zoomAt(0.64)), [1, 1, 0, 0])
   // …the portrait steps aside a beat earlier…
-  const portraitScale = useTransform(scrollYProgress, [0.22, 0.48], [1, 0.6])
-  const portraitY = useTransform(scrollYProgress, [0.22, 0.48], [0, -90])
-  const portraitOpacity = useTransform(scrollYProgress, [0.3, 0.5], [1, 0])
+  const portraitScale = useTransform(scrollYProgress, [zoomAt(0), zoomAt(0.46)], [1, 0.6])
+  const portraitY = useTransform(scrollYProgress, [zoomAt(0), zoomAt(0.46)], [0, -90])
+  const portraitOpacity = useTransform(scrollYProgress, fadeStops(zoomAt(0.14), zoomAt(0.5)), [1, 1, 0, 0])
   // …and Background rises from beneath, small to settled.
-  const bgScale = useTransform(scrollYProgress, [0.5, 0.78], [0.86, 1])
-  const bgY = useTransform(scrollYProgress, [0.5, 0.78], [80, 0])
-  const bgBlurV = useTransform(scrollYProgress, [0.5, 0.72], [6, 0])
+  const bgScale = useTransform(scrollYProgress, [zoomAt(0.5), zoomAt(1)], [0.86, 1])
+  const bgY = useTransform(scrollYProgress, [zoomAt(0.5), zoomAt(1)], [80, 0])
+  const bgBlurV = useTransform(scrollYProgress, [zoomAt(0.5), zoomAt(0.9)], [6, 0])
   const bgBlur = useTransform(bgBlurV, (b) => `blur(${b}px)`)
-  const bgOpacity = useTransform(scrollYProgress, [0.5, 0.68], [0, 1])
+  const bgOpacity = useTransform(scrollYProgress, fadeStops(zoomAt(0.5), zoomAt(0.82)), [0, 0, 1, 1])
 
   // Only the visible layer should catch the pointer (hover, text selection).
   const [bgInteractive, setBgInteractive] = useState(false)
@@ -633,85 +655,191 @@ function CardMedia({ media, icon, alt }: Readonly<{ media?: string[]; icon: stri
   )
 }
 
-/** One card in the deck. Its wrapper is a full viewport of scroll distance;
- *  the card sticks near the top, and while the NEXT card climbs over it, it
- *  sinks slightly and dims — a stack building up. */
-function DeckCard({ item, index, isLast }: Readonly<{ item: Interest; index: number; isLast: boolean }>) {
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const reduce = useReducedMotion()
-  // Progress of being covered: 0 while on top, 1 once the next card fully
-  // overlaps ("end end" → wrapper's end at viewport bottom = next card enters).
-  const { scrollYProgress } = useScroll({ target: wrapRef, offset: ['end end', 'end start'] })
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.93])
-  const brightnessV = useTransform(scrollYProgress, [0, 1], [1, 0.55])
-  const filter = useTransform(brightnessV, (b) => `brightness(${b})`)
-
+/** The two halves of a deck card (media + text) — shared between the pinned
+ *  pile and the flat reduced-motion fallback. */
+function CardInner({ item, index, total }: Readonly<{ item: Interest; index: number; total: number }>) {
   return (
-    <div ref={wrapRef} style={{ height: '100vh' }}>
-      <motion.div
-        className="deck-card"
-        style={reduce || isLast ? undefined : { scale, filter }}
-      >
-        <CardMedia media={item.media} icon={item.icon} alt={item.title} />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
-          <span className="font-mono-label" style={{ fontSize: '11px', color: 'var(--accent)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-            №&nbsp;{String(index + 1).padStart(2, '0')} / {String(interests.length).padStart(2, '0')}
-          </span>
-          <h3
-            className="font-condensed"
+    <>
+      <CardMedia media={item.media} icon={item.icon} alt={item.title} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+        <span className="font-mono-label" style={{ fontSize: '11px', color: 'var(--accent)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+          №&nbsp;{String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        </span>
+        <h3
+          className="font-condensed"
+          style={{
+            fontWeight: 800,
+            fontSize: 'clamp(1.8rem, 3.6vw, 2.8rem)',
+            textTransform: 'uppercase',
+            color: 'var(--text)',
+            letterSpacing: '0.01em',
+            lineHeight: 0.95,
+          }}
+        >
+          {item.title}
+        </h3>
+        {item.badge && (
+          <span
+            className="font-mono-label"
             style={{
-              fontWeight: 800,
-              fontSize: 'clamp(1.8rem, 3.6vw, 2.8rem)',
-              textTransform: 'uppercase',
-              color: 'var(--text)',
-              letterSpacing: '0.01em',
-              lineHeight: 0.95,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              alignSelf: 'flex-start',
+              fontSize: '11px',
+              color: 'var(--accent)',
+              background: 'var(--accent-dim)',
+              padding: '4px 10px',
+              borderRadius: '999px',
+              letterSpacing: '0.04em',
             }}
           >
-            {item.title}
-          </h3>
-          {item.badge && (
-            <span
-              className="font-mono-label"
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                alignSelf: 'flex-start',
-                fontSize: '11px',
-                color: 'var(--accent)',
-                background: 'var(--accent-dim)',
-                padding: '4px 10px',
-                borderRadius: '999px',
-                letterSpacing: '0.04em',
-              }}
-            >
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor', animation: 'pulse 2s infinite' }} />
-              {item.badge}
-            </span>
-          )}
-          <p style={{ color: 'var(--muted)', fontSize: '15.5px', lineHeight: 1.75 }}>{item.description}</p>
-          {item.slug && (
-            <Link
-              to={`/about/${item.slug}`}
-              className="font-condensed cursor-pointer"
-              style={{
-                alignSelf: 'flex-start',
-                marginTop: '4px',
-                fontSize: '1.15rem',
-                fontWeight: 700,
-                textTransform: 'uppercase',
-                letterSpacing: '0.03em',
-                color: 'var(--accent)',
-                textDecoration: 'none',
-              }}
-            >
-              See more →
-            </Link>
-          )}
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor', animation: 'pulse 2s infinite' }} />
+            {item.badge}
+          </span>
+        )}
+        <p style={{ color: 'var(--muted)', fontSize: '15.5px', lineHeight: 1.75 }}>{item.description}</p>
+        {item.slug && (
+          <Link
+            to={`/about/${item.slug}`}
+            className="font-condensed cursor-pointer"
+            style={{
+              alignSelf: 'flex-start',
+              marginTop: '4px',
+              fontSize: '1.15rem',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.03em',
+              color: 'var(--accent)',
+              textDecoration: 'none',
+            }}
+          >
+            See more →
+          </Link>
+        )}
+      </div>
+    </>
+  )
+}
+
+/** Scroll distance a card rests at the front of the pile (nothing moves, so
+ *  it gets read), and the distance one "deal" to the next card takes. */
+const CARD_HOLD_PX = 480
+const DEAL_PX = 560
+
+/** Soft start and settle for each deal, so a card eases into its rest. */
+const smoothstep = (t: number) => t * t * (3 - 2 * t)
+
+/** Progress stops for the deck: hold card 0, deal, hold card 1, deal, … hold
+ *  the last card. `draw` sits on a whole number during every hold. */
+function deckStops(count: number) {
+  const track = count * CARD_HOLD_PX + (count - 1) * DEAL_PX
+  const input: number[] = []
+  const output: number[] = []
+  for (let i = 0; i < count; i++) {
+    const holdStart = i * (CARD_HOLD_PX + DEAL_PX)
+    input.push(holdStart / track, (holdStart + CARD_HOLD_PX) / track)
+    output.push(i, i)
+  }
+  return { track, input, output }
+}
+
+/** One layer in the pile. `depth` = index − draw: 0 is the front card,
+ *  positive values sit behind (peeking up, smaller, dimmer), negative means
+ *  dealt out — slid down with a slight tilt, like laying it on the table.
+ *  Everything is continuous, so scrubbing back pulls the card cleanly back. */
+function DeckLayer({
+  item,
+  index,
+  total,
+  draw,
+}: Readonly<{ item: Interest; index: number; total: number; draw: MotionValue<number> }>) {
+  const depth = useTransform(draw, (v) => index - v)
+  const y = useTransform(depth, [-1, 0, 1, 2, 3], [440, 0, -18, -34, -48])
+  const rotate = useTransform(depth, [-1, 0], [-7, 0], { clamp: true })
+  const scale = useTransform(depth, [-1, 0, 1, 2, 3], [1.02, 1, 0.955, 0.915, 0.88])
+  const opacity = useTransform(depth, [-1, -0.75, 2.6, 3], [0, 1, 1, 0])
+  const brightnessV = useTransform(depth, [0, 1, 2, 3], [1, 0.75, 0.58, 0.48])
+  const filter = useTransform(brightnessV, (b) => `brightness(${b})`)
+
+  // Only the front card should catch the pointer (it holds the See more link).
+  const [front, setFront] = useState(index === 0)
+  useMotionValueEvent(depth, 'change', (v) => {
+    const next = Math.abs(v) < 0.5
+    setFront((prev) => (prev === next ? prev : next))
+  })
+
+  return (
+    <motion.div
+      style={{
+        position: 'absolute',
+        inset: 0,
+        y,
+        rotate,
+        scale,
+        opacity,
+        filter,
+        zIndex: total - index,
+        pointerEvents: front ? 'auto' : 'none',
+        transformOrigin: '50% 100%',
+      }}
+    >
+      <div className="deck-card">
+        <CardInner item={item} index={index} total={total} />
+      </div>
+    </motion.div>
+  )
+}
+
+/** The deck: a single pinned stage holding the whole pile; scroll deals the
+ *  cards one by one. Reduced motion gets a plain stacked list instead. */
+function Deck({ items }: Readonly<{ items: Interest[] }>) {
+  const sectionRef = useRef<HTMLElement>(null)
+  const reduce = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start start', 'end end'] })
+  const stops = deckStops(items.length)
+  const draw = useTransform(scrollYProgress, stops.input, stops.output, { ease: smoothstep })
+
+  if (reduce) {
+    return (
+      <section style={{ padding: '0 24px' }}>
+        <div style={{ maxWidth: '1024px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+          {items.map((item, i) => (
+            <div key={item.title} className="deck-card" style={{ height: 'auto' }}>
+              <CardInner item={item} index={i} total={items.length} />
+            </div>
+          ))}
         </div>
-      </motion.div>
-    </div>
+      </section>
+    )
+  }
+
+  return (
+    <section ref={sectionRef} style={{ position: 'relative', height: `calc(100vh + ${stops.track}px)` }}>
+      {/* slight top padding biases the pile down so the peeking edges never
+          brush the fixed navbar */}
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '56px 24px 0',
+        }}
+      >
+        <div style={{ width: '100%' }}>
+          <VelocitySkew>
+            <div className="deck-stage">
+              {items.map((item, i) => (
+                <DeckLayer key={item.title} item={item} index={i} total={items.length} draw={draw} />
+              ))}
+            </div>
+          </VelocitySkew>
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -900,13 +1028,7 @@ function AboutPage() {
           </SlideIn>
         </div>
       </section>
-      <section style={{ padding: '0 24px' }}>
-        <div style={{ maxWidth: '1024px', margin: '0 auto' }}>
-          {interests.map((item, i) => (
-            <DeckCard key={item.title} item={item} index={i} isLast={i === interests.length - 1} />
-          ))}
-        </div>
-      </section>
+      <Deck items={interests} />
 
       {/* 04 — reading, hidden until src/data/reading.ts has real titles */}
       {hasReading && <ReadingScene />}

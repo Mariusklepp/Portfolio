@@ -203,9 +203,10 @@ function Hero() {
           </Button>
         </motion.div>
 
-        {/* socials sit centred on the photo (desktop); this copy only appears on
-            narrow screens, where the photo moves behind the type */}
-        <div className="hero-socials-bar">
+        {/* socials sit centred on the photo (desktop); this copy appears on
+            narrow screens, where the photo moves behind the type, and
+            whenever there's no photo to carry them */}
+        <div className={showPhoto ? 'hero-socials-bar' : 'hero-socials-bar is-standalone'}>
           <Socials />
         </div>
       </div>

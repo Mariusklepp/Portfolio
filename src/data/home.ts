@@ -19,7 +19,9 @@ export const typewriterTexts = [
  * If this is `null`, missing, or fails to load, the hero falls back to the
  * kinetic wordmark on its own — so it's always safe to experiment.
  */
-export const heroPortrait: string | null = '/images/portrait.png'
+// Temporarily off while Marius picks a new photo. Put '/images/portrait.png'
+// (or the new file) back here to bring the portrait back.
+export const heroPortrait: string | null = null
 /** true = `heroPortrait` is already background-removed (transparent PNG);
  *  false = raw photo, let the hero knock the plain background out via a mask. */
 export const heroPortraitIsolated = true
