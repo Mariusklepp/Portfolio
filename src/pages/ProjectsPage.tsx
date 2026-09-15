@@ -13,6 +13,13 @@ const COMPLETED_STATUS = new Set(['shipped', 'live', 'completed', 'done', 'relea
 const IN_DEV_STATUS = new Set(['in development', 'in design', 'in progress', 'wip', 'building', 'planned'])
 const statusOf = (p: Project) => (p.status ?? '').toLowerCase()
 
+/** List order: unfinished work on top, finished at the bottom, newest first
+ *  inside each group. */
+function listOrder(list: Project[]): Project[] {
+  const done = (p: Project) => (COMPLETED_STATUS.has(statusOf(p)) ? 1 : 0)
+  return [...list].sort((a, b) => done(a) - done(b) || (b.date ?? '').localeCompare(a.date ?? ''))
+}
+
 /** Filter pills: All, each category (first-appearance order), then status stage. */
 const FILTERS: FilterDef[] = [
   { label: 'All', match: () => true },
@@ -186,12 +193,67 @@ function FilterPill({
   )
 }
 
+/** Opens the filter pills. Stays lit while a filter other than All is active,
+ *  and names it, so a filtered list never looks like the whole list. */
+function FilterToggle({
+  open,
+  activeLabel,
+  onClick,
+}: Readonly<{ open: boolean; activeLabel: string | null; onClick: () => void }>) {
+  const lit = open || activeLabel !== null
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      aria-controls="project-filters"
+      className="font-mono-label cursor-pointer"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontSize: '12px',
+        padding: '10px 16px',
+        borderRadius: '999px',
+        border: `1px solid ${lit ? 'var(--accent)' : 'var(--border)'}`,
+        background: 'transparent',
+        color: lit ? 'var(--text)' : 'var(--muted)',
+        letterSpacing: '0.04em',
+        transition: 'color 0.2s, border-color 0.2s',
+      }}
+      onMouseEnter={(e) => {
+        if (!lit) {
+          e.currentTarget.style.borderColor = 'var(--accent)'
+          e.currentTarget.style.color = 'var(--text)'
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!lit) {
+          e.currentTarget.style.borderColor = 'var(--border)'
+          e.currentTarget.style.color = 'var(--muted)'
+        }
+      }}
+    >
+      <Icon icon="lucide:sliders-horizontal" width={14} height={14} />
+      Filter
+      {activeLabel && <span style={{ color: 'var(--accent)' }}>· {activeLabel}</span>}
+      <Icon
+        icon="lucide:chevron-down"
+        width={14}
+        height={14}
+        style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }}
+      />
+    </button>
+  )
+}
+
 function ProjectsPage() {
   const reduce = useReducedMotion()
   const [view, setView] = useState<'list' | 'timeline'>('list')
   const [filter, setFilter] = useState('All')
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const active = FILTERS.find((f) => f.label === filter) ?? FILTERS[0]
-  const filtered = projects.filter(active.match)
+  const filtered = listOrder(projects.filter(active.match))
 
   return (
     <div style={{ minHeight: '100vh', padding: '128px 24px 96px' }}>
@@ -224,60 +286,80 @@ function ProjectsPage() {
           </p>
         </Reveal>
 
-        {/* View toggle: List | Timeline */}
+        {/* View toggle (List | Timeline) + the filter button beside it */}
         <Reveal delay={60}>
-          <div
-            style={{
-              display: 'inline-flex',
-              gap: '4px',
-              padding: '4px',
-              border: '1px solid var(--border)',
-              borderRadius: '999px',
-              marginBottom: '28px',
-            }}
-          >
-            {(['list', 'timeline'] as const).map((v) => {
-              const isActive = view === v
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => setView(v)}
-                  className="font-mono-label cursor-pointer"
-                  style={{
-                    fontSize: '12px',
-                    padding: '7px 16px',
-                    borderRadius: '999px',
-                    border: 'none',
-                    background: isActive ? 'var(--accent)' : 'transparent',
-                    color: isActive ? '#fff' : 'var(--muted)',
-                    letterSpacing: '0.04em',
-                    transition: 'background 0.2s, color 0.2s',
-                  }}
-                >
-                  {v === 'list' ? 'List' : 'Timeline'}
-                </button>
-              )
-            })}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '28px' }}>
+            <div
+              style={{
+                display: 'inline-flex',
+                gap: '4px',
+                padding: '4px',
+                border: '1px solid var(--border)',
+                borderRadius: '999px',
+              }}
+            >
+              {(['list', 'timeline'] as const).map((v) => {
+                const isActive = view === v
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setView(v)}
+                    className="font-mono-label cursor-pointer"
+                    style={{
+                      fontSize: '12px',
+                      padding: '7px 16px',
+                      borderRadius: '999px',
+                      border: 'none',
+                      background: isActive ? 'var(--accent)' : 'transparent',
+                      color: isActive ? '#fff' : 'var(--muted)',
+                      letterSpacing: '0.04em',
+                      transition: 'background 0.2s, color 0.2s',
+                    }}
+                  >
+                    {v === 'list' ? 'List' : 'Timeline'}
+                  </button>
+                )
+              })}
+            </div>
+            {view === 'list' && (
+              <FilterToggle
+                open={filtersOpen}
+                activeLabel={filter === 'All' ? null : filter}
+                onClick={() => setFiltersOpen((o) => !o)}
+              />
+            )}
           </div>
         </Reveal>
 
         {view === 'list' ? (
           <>
-            {/* Filter pills */}
-            <Reveal delay={80}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '28px' }}>
-                {FILTERS.map((f) => (
-                  <FilterPill
-                    key={f.label}
-                    label={f.label}
-                    count={projects.filter(f.match).length}
-                    active={filter === f.label}
-                    onClick={() => setFilter(f.label)}
-                  />
-                ))}
-              </div>
-            </Reveal>
+            {/* Filter pills, folded away until the Filter button opens them */}
+            <AnimatePresence initial={false}>
+              {filtersOpen && (
+                <motion.div
+                  key="filters"
+                  id="project-filters"
+                  initial={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
+                  transition={{ duration: reduce ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', paddingBottom: '28px' }}>
+                    {FILTERS.map((f) => (
+                      <FilterPill
+                        key={f.label}
+                        label={f.label}
+                        count={projects.filter(f.match).length}
+                        active={filter === f.label}
+                        onClick={() => setFilter(f.label)}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Index — rows reflow with a layout animation when the filter changes */}
             <div style={{ borderTop: '1px solid var(--border)' }}>

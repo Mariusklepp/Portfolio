@@ -49,6 +49,129 @@ export function formatMonthYear(date?: string): string {
 
 export const projects: Project[] = [
   {
+    // Placeholder name until Marius picks a real one (NOT "Project Athlete").
+    // Facts come from PROSJEKTOPPSUMMERING.md in the app's own repo.
+    id: 'treningsapplikasjon',
+    title: 'Treningsapplikasjon',
+    description: 'My own training platform, built for one user: me. It follows my form and training load, spots gaps in my history and plans the weeks ahead with a rule-based engine. Live, and I actually use it.',
+    longDescription: `This is a training platform I made for myself, and I'm the only user. It's meant to follow my training over many years, across running, cycling, swimming and strength, and to plan ahead based on what I've actually done.
+
+Today it has a dashboard with today's session, a form curve and weekly volume per sport, a calendar with week, month and 12-week views, a page for every session with heart rate and zones, and a module for absences like sickness, travel or injury. A rule-based engine plans the week from my history, my absences, the 80/20 split, a lighter week every fourth week and a cap on how fast the load can grow.
+
+The hardest problem was planning far ahead without the plan freezing. Each week's target came from the weeks before it, so week twelve just copied this week. Now every week is projected forward one at a time and fed the planned load from the weeks before it.
+
+It's built with Next.js, TypeScript, Prisma and Postgres on Supabase, hosted on Vercel, and every chart is hand-drawn SVG. It's AI-assisted: Claude Code wrote most of the code, while I owned the product decisions, the domain model and the design principles.`,
+    tags: ['Next.js', 'TypeScript', 'PostgreSQL', 'Fullstack'],
+    tech: [
+      { name: 'Next.js', icon: 'simple-icons:nextdotjs' },
+      { name: 'React', icon: 'devicon:react' },
+      { name: 'TypeScript', icon: 'devicon:typescript' },
+      { name: 'Tailwind CSS', icon: 'devicon:tailwindcss' },
+      { name: 'Prisma', icon: 'simple-icons:prisma' },
+      { name: 'PostgreSQL', icon: 'devicon:postgresql' },
+      { name: 'Supabase', icon: 'devicon:supabase' },
+      { name: 'Vercel', icon: 'simple-icons:vercel' },
+    ],
+    // the repo is private, so this points at the profile
+    github: 'https://github.com/Mariusklepp',
+    accent: 'from-red-900/30 to-stone-900/45',
+    status: 'In development',
+    category: 'Apps',
+    date: '2026-08-16',
+    content: [
+      {
+        type: 'paragraph',
+        text: "This is a training platform I made for myself, and I'm the only user. It's meant to follow my training over many years, across running, cycling, swimming and strength, and to plan ahead based on what I've actually done instead of a template. The next big test for it is building toward the Copenhagen Marathon in May 2027.",
+      },
+      {
+        type: 'stats',
+        items: [
+          { value: '5 / 17', label: 'Modules live' },
+          { value: '0', label: 'Chart libraries' },
+          { value: '22', label: 'Product decisions' },
+          { value: 'Next.js 16', label: 'Built with' },
+        ],
+      },
+
+      {
+        type: 'heading',
+        eyebrow: 'What it does',
+        text: 'What it can do today',
+      },
+      {
+        type: 'features',
+        items: [
+          { icon: 'lucide:layout-dashboard', title: 'Dashboard', text: "Today's session, a form curve (CTL, ATL and TSB), weekly volume per sport and a countdown to the next goal." },
+          { icon: 'lucide:gauge', title: 'Load guard', text: 'Warns when the acute:chronic ratio climbs too fast, and checks my intensity against the 80/20 principle.' },
+          { icon: 'lucide:calendar-days', title: 'Calendar', text: 'Week, month and 12-week views. The view and the date live in the URL, so every view has its own link.' },
+          { icon: 'lucide:heart-pulse', title: 'Session pages', text: 'Every session gets its own page with a heart rate curve, time in each zone and the key numbers.' },
+          { icon: 'lucide:thermometer', title: 'Absence', text: 'Sickness, travel, injury or a planned break, with how much training is still possible. The app finds gaps in the history by itself and asks what happened.' },
+          { icon: 'lucide:route', title: 'Plan engine', text: 'Plans the week from my history, absences, the 80/20 split, a lighter week every fourth week and a cap on how fast the load can grow.' },
+        ],
+      },
+
+      { type: 'divider' },
+
+      {
+        type: 'heading',
+        eyebrow: 'Design',
+        text: 'Fewer choices on every screen',
+      },
+      {
+        type: 'paragraph',
+        text: "The rule I set for the whole app is Hick's law: the more choices you can see, the slower and more annoying every decision gets. So each screen has one main action, advanced settings stay hidden until you ask for them, and anything that can't do something yet isn't shown at all. Not greyed out, just not there. What isn't built yet lives on a roadmap page instead.",
+      },
+      {
+        type: 'callout',
+        tone: 'accent',
+        icon: 'lucide:calendar-off',
+        text: "One idea that changed the data model: an absence isn't a hole in the log, it's a period where I can train less. And the app shouldn't make me feel guilty for being away, so there's no \"days since last session\" counter anywhere.",
+      },
+
+      {
+        type: 'heading',
+        eyebrow: 'The hard part',
+        text: 'Planning ahead without the plan freezing',
+      },
+      {
+        type: 'paragraph',
+        text: "Each week's load target comes from the average of the weeks before it. That works fine for this week, but it broke when I planned twelve weeks out. Week twelve asked about today's form, got today's answer, and came back as a copy of this week. The plan could never build toward a marathon, which is the whole point of it.",
+      },
+      {
+        type: 'paragraph',
+        text: "The fix has two parts. Weeks are projected forward one at a time, and each one is fed the planned load from the weeks before it, not only real history. And the load cap is checked on the day before that week starts instead of today. A related bug sat in the same code: after an absence, the build-up stayed anchored to the level from before the break. That's right for the first weeks back, but the anchor was never let go, so every future week kept measuring itself against August.",
+      },
+
+      { type: 'divider' },
+
+      {
+        type: 'heading',
+        eyebrow: 'Under the hood',
+        text: "How it's built",
+      },
+      {
+        type: 'paragraph',
+        text: "It's one Next.js app. The backend is Server Components and Server Actions in the same codebase, with Postgres on Supabase through Prisma, and it's hosted on Vercel. The training logic is kept apart from the rest: pure functions for load, form and heart rate zones with no I/O, a coach module for the plan engine, and a read layer against the database. The view models are picked straight from the Prisma types, so a schema change breaks the build instead of putting wrong numbers on screen.",
+      },
+      {
+        type: 'paragraph',
+        text: 'There is no chart library. The form curve, the stacked volume bars, the load gauge and the heart rate curves are all hand-drawn SVG.',
+      },
+      {
+        type: 'callout',
+        tone: 'neutral',
+        icon: 'lucide:sparkles',
+        text: 'Built with AI-assisted development. Claude Code wrote most of the code. I owned the product decisions, the domain model and the design principles, and steered and corrected it along the way.',
+      },
+      {
+        type: 'callout',
+        tone: 'neutral',
+        icon: 'lucide:hammer',
+        text: 'Status: live on Vercel with my real training data. The dashboard, calendar, session pages and absence module work end to end. Next up is saving the plans so I can accept or change them, and a proper Strava sync. Until then, sessions come in through an import script.',
+      },
+    ],
+  },
+  {
     id: 'millions',
     title: 'Millions',
     description: 'A stock-market game where you start with a small amount of cash and try to reach one million kroner by trading shares week by week. Built in Java and JavaFX as a two-person project at NTNU.',

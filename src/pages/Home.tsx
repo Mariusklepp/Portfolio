@@ -1,4 +1,4 @@
-import { projects } from '../data/projects'
+import { projects, type Project } from '../data/projects'
 import { currentlyWorking } from '../data/home'
 import { TravelingBackdrop, SlideIn, Parallax } from '../components/motion'
 import Hero from '../components/Hero'
@@ -8,11 +8,13 @@ import Button from '../components/Button'
 import WorkingOnCard from '../components/WorkingOnCard'
 import Pursuits from '../components/Pursuits'
 
-// "Things I've built" features finished work; the in-progress builds (Jarvis,
-// Deep Core) live in the Currently section, so they're filtered out here. Two
-// cards keep the gallery's end frame clean (no half-cut card); the rest live
-// behind "See all projects".
-const featuredProjects = projects.filter((p) => p.id !== 'jarvis' && p.id !== 'deep-core').slice(0, 2)
+// "Things I've built" is a hand-picked set, in this order, and FINISHED work
+// only; anything still in development stays out (Jarvis and Deep Core live in
+// the Currently section). The rest live behind "See all projects".
+const FEATURED_IDS = ['millions', 'excel-customer-id-matcher']
+const featuredProjects = FEATURED_IDS.map((id) => projects.find((p) => p.id === id)).filter(
+  (p): p is Project => Boolean(p),
+)
 
 /** Eyebrow + big condensed all-caps heading. The heading slides in from the
  *  left; an optional action slides in from the right. */

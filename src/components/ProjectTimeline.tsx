@@ -35,9 +35,13 @@ export default function ProjectTimeline() {
     return () => mq.removeEventListener('change', update)
   }, [])
 
-  // The line draws as the section scrolls through the viewport.
+  // The line tracks time, not scroll. Oldest first moves forward in time, so it
+  // fills as you go down; newest first moves back in time, so it starts full
+  // and drains from the top. Either way the red edge sits at the viewport centre.
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start center', 'end center'] })
   const drawn = useTransform(scrollYProgress, [0, 1], [0, 1])
+  const remaining = useTransform(scrollYProgress, [0, 1], [1, 0])
+  const drain = order === 'newest'
 
   // ...and sways a touch with scroll velocity, to feel alive.
   const { scrollY } = useScroll()
@@ -99,14 +103,20 @@ export default function ProjectTimeline() {
           >
             {/* faint full track */}
             <path d={WAVE_PATH} fill="none" stroke="var(--border)" strokeWidth={2} strokeLinecap="round" />
-            {/* drawn-on-scroll accent line */}
+            {/* accent line, filling or draining with scroll. Keyed by order so
+                the path remounts cleanly instead of swapping bound values. */}
             <motion.path
+              key={order}
               d={WAVE_PATH}
               fill="none"
               stroke="var(--accent)"
               strokeWidth={2}
               strokeLinecap="round"
-              style={{ pathLength: reduce ? 1 : drawn, filter: 'drop-shadow(0 0 6px var(--accent))' }}
+              style={{
+                pathLength: reduce ? 1 : drain ? remaining : drawn,
+                pathOffset: reduce || !drain ? 0 : drawn,
+                filter: 'drop-shadow(0 0 6px var(--accent))',
+              }}
             />
           </motion.svg>
         </div>

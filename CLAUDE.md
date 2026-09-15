@@ -64,8 +64,9 @@ Editorial scroll in `src/pages/Home.tsx`; stages tracked by the chapter rail:
 1. **Hero**
 2. **Currently** — what's being built now (JARVIS, Deep Core) as cards.
 3. **Selected work** — finished projects as a **horizontal scroll gallery**
-   (`HorizontalGallery.tsx`): pins, zooms in/out on enter/exit, shows 2 featured
-   cards + a "See all projects" panel.
+   (`HorizontalGallery.tsx`): pins, zooms in/out on enter/exit, shows
+   hand-picked cards (`FEATURED_IDS` in `Home.tsx`) + a "See all projects" panel.
+   **Finished projects only** — nothing still in development goes here.
 4. **Get to know me** — the **short version of About** (title kept
    plain/professional by request — no clever naming, and not "About me" either,
    so it doesn't compete with the About page): one honest identity line ("I'm
